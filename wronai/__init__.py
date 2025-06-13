@@ -42,6 +42,6 @@ __all__ = [
 
 # Package metadata
 __author__ = "Tom Sapletta"
-__email__ = "wronai@softreck.dev"
+__email__ = "info@softreck.dev"
 __license__ = "Apache 2.0"
 __description__ = "Polski model językowy - demokratyzacja AI"

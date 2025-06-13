@@ -2,10 +2,16 @@
 """
 WronAI Inference Script
 Generate text using trained WronAI model
+
+Note: To use Llama-2 models, you need to authenticate with Hugging Face:
+1. Get your access token from https://huggingface.co/settings/tokens
+2. Run: huggingface-cli login
+3. Enter your access token when prompted
 """
 
 import argparse
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import List, Optional
@@ -17,10 +23,17 @@ from transformers import (
     AutoTokenizer,
     BitsAndBytesConfig,
     pipeline,
+    logging as hf_logging
 )
 
+# Reduce verbosity from the transformers library
+hf_logging.set_verbosity_error()
+
 # Setup logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 
@@ -39,11 +52,6 @@ class WronAIInference:
         """Load model and tokenizer for inference."""
         logger.info(f"Loading model from: {self.model_path}")
 
-        # Load tokenizer
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
-        if self.tokenizer.pad_token is None:
-            self.tokenizer.pad_token = self.tokenizer.eos_token
-
         # Quantization config for inference
         if self.quantize:
             quantization_config = BitsAndBytesConfig(
@@ -55,25 +63,113 @@ class WronAIInference:
         else:
             quantization_config = None
 
-        # Load base model
-        base_model_name = "mistralai/Mistral-7B-v0.1"  # Should be saved in config
-
-        self.model = AutoModelForCausalLM.from_pretrained(
-            base_model_name,
-            quantization_config=quantization_config,
-            torch_dtype=torch.bfloat16,
-            device_map="auto",
-            trust_remote_code=True
-        )
-
-        # Load LoRA adapters if they exist
-        try:
-            self.model = PeftModel.from_pretrained(self.model, self.model_path)
-            logger.info("LoRA adapters loaded successfully")
-        except Exception as e:
-            logger.warning(f"Could not load LoRA adapters: {e}")
-            # Try loading as full model
+        # Model configuration
+        # Using OPT-1.3B to match the LoRA checkpoint
+        base_model_name = "facebook/opt-1.3b"
+        # Fallback to a smaller model if needed
+        fallback_model_name = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+        
+        # Check if we should use the local model directory
+        model_path = Path(self.model_path)
+        if model_path.exists() and (model_path / "config.json").exists():
+            logger.info(f"Found local model at: {self.model_path}")
             try:
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    self.model_path,
+                    use_fast=True
+                )
+                logger.info("Tokenizer loaded from local model directory")
+                return
+            except Exception as e:
+                logger.warning(f"Could not load tokenizer from local model: {e}")
+                logger.info("Falling back to base model...")
+        
+        # Try to load from base model with authentication
+        try:
+            logger.info(f"Attempting to load tokenizer from: {base_model_name}")
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                base_model_name,
+                use_fast=True
+            )
+            logger.info("Tokenizer loaded successfully")
+        except Exception as e:
+            logger.warning(f"Could not load tokenizer from {base_model_name}: {e}")
+            if "authentication" in str(e).lower():
+                logger.error("\n" + "="*80)
+                logger.error("AUTHENTICATION REQUIRED")
+                logger.error("To use Llama-2 models, you need to authenticate with Hugging Face:")
+                logger.error("1. Get your access token from https://huggingface.co/settings/tokens")
+                logger.error("2. Run: huggingface-cli login")
+                logger.error("3. Enter your access token when prompted")
+                logger.error("="*80 + "\n")
+            
+            # Fallback to TinyLlama
+            logger.info(f"Falling back to: {fallback_model_name}")
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                fallback_model_name,
+                use_fast=True
+            )
+            logger.info("Tokenizer loaded from fallback model")
+            
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+
+        # Load the model
+        try:
+            # First try to load from local directory if it exists
+            if model_path.exists() and (model_path / "config.json").exists():
+                logger.info(f"Loading model from local directory: {self.model_path}")
+                self.model = AutoModelForCausalLM.from_pretrained(
+                    self.model_path,
+                    quantization_config=quantization_config,
+                    torch_dtype=torch.bfloat16,
+                    device_map="auto",
+                    trust_remote_code=True
+                )
+                logger.info("Model loaded from local directory")
+                return
+                
+            # If no local model, try loading base model
+            logger.info(f"Loading model: {base_model_name}")
+            self.model = AutoModelForCausalLM.from_pretrained(
+                base_model_name,
+                quantization_config=quantization_config,
+                torch_dtype=torch.bfloat16,
+                device_map="auto",
+                trust_remote_code=True
+            )
+            logger.info("Base model loaded successfully")
+            
+        except Exception as e:
+            # If base model fails, try fallback model
+            logger.warning(f"Could not load base model {base_model_name}: {e}")
+            logger.info(f"Loading fallback model: {fallback_model_name}")
+            self.model = AutoModelForCausalLM.from_pretrained(
+                fallback_model_name,
+                quantization_config=quantization_config,
+                torch_dtype=torch.bfloat16,
+                device_map="auto",
+                trust_remote_code=True
+            )
+            logger.info("Fallback model loaded successfully")
+
+        # Check if this is a LoRA checkpoint
+        if (Path(self.model_path) / "adapter_config.json").exists():
+            try:
+                logger.info(f"Found LoRA checkpoint at: {self.model_path}")
+                if hasattr(self, 'model'):
+                    logger.info("Applying LoRA adapters to the base model...")
+                    self.model = PeftModel.from_pretrained(self.model, self.model_path)
+                    logger.info("LoRA adapters loaded and applied successfully")
+                else:
+                    logger.error("Base model not loaded. Cannot apply LoRA adapters.")
+            except Exception as e:
+                logger.error(f"Failed to load LoRA adapters: {e}")
+                logger.info("Continuing without LoRA adapters")
+        else:
+            # Try loading as a full model
+            try:
+                logger.info(f"Attempting to load as full model from: {self.model_path}")
                 self.model = AutoModelForCausalLM.from_pretrained(
                     self.model_path,
                     quantization_config=quantization_config,
@@ -83,8 +179,8 @@ class WronAIInference:
                 )
                 logger.info("Full model loaded successfully")
             except Exception as e2:
-                logger.error(f"Could not load model: {e2}")
-                sys.exit(1)
+                logger.warning(f"Could not load full model: {e2}")
+                logger.info("Continuing with base model only")
 
         # Create text generation pipeline
         self.pipeline = pipeline(
@@ -98,11 +194,16 @@ class WronAIInference:
         logger.info("Model loaded successfully!")
 
     def format_prompt(self, instruction: str, system_prompt: Optional[str] = None) -> str:
-        """Format prompt for WronAI model."""
+        """Format prompt for the model."""
         if system_prompt is None:
-            system_prompt = "Jesteś pomocnym asystentem AI specjalizującym się w języku polskim."
+            system_prompt = (
+                "Jesteś pomocnym asystentem AI specjalizującym się w języku polskim. "
+                "Odpowiadaj szczegółowo i wyczerpująco na zadane pytania. "
+                "Jeśli pytanie dotyczy Polski, uwzględnij kontekst historyczny, kulturalny i społeczny."
+            )
 
-        prompt = f"<polish><question>{instruction}</question><answer>"
+        # OPT uses a simple text format without special tokens
+        prompt = f"{system_prompt}\n\nPytanie: {instruction}\nOdpowiedź: "
         return prompt
 
     def generate(
@@ -124,12 +225,16 @@ class WronAIInference:
         # Generate
         outputs = self.pipeline(
             formatted_prompt,
-            max_length=max_length,
-            temperature=temperature,
-            top_p=top_p,
-            top_k=top_k,
-            repetition_penalty=repetition_penalty,
-            do_sample=do_sample,
+            max_length=1024,  # Increased from 512 for more detailed responses
+            temperature=0.3,   # Lower temperature for more focused responses
+            top_p=0.95,       # Slightly higher for better diversity
+            top_k=40,         # Slightly more focused than 50
+            repetition_penalty=1.2,  # Increased to reduce repetition
+            do_sample=True,
+            num_beams=1,     # For more creative responses
+            no_repeat_ngram_size=3,  # Prevent repeating n-grams
+            length_penalty=1.0,  # Slightly encourage longer responses
+            early_stopping=True,
             pad_token_id=self.tokenizer.eos_token_id,
             eos_token_id=self.tokenizer.eos_token_id,
             return_full_text=False
@@ -278,8 +383,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    input.lower() in ['quit', 'exit', 'q']:
-    print("Dziękuję za rozmowę! 👋")
-    break
-
-if user_

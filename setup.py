@@ -15,10 +15,10 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
     requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
 
 setup(
-    name="wronai",
+    name="wronai-7b",
     version="0.1.0",
-    author=Tom Sapletta,
-    author_email="wronai@softreck.dev",
+    author="Tom Sapletta",
+    author_email="info@softreck.dev",
     description="Polski model językowy - demokratyzacja AI dla języka polskiego",
     long_description=long_description,
     long_description_content_type="text/markdown",

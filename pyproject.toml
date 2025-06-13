@@ -9,10 +9,10 @@ description = "Polski model językowy - demokratyzacja AI dla języka polskiego"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 authors = [
-    {name = "Tom Sapletta", email = "wronai@softreck.dev"}
+    {name = "Tom Sapletta", email = "info@softreck.dev"}
 ]
 maintainers = [
-    {name = "Tom Sapletta", email = "wronai@softreck.dev"}
+    {name = "Tom Sapletta", email = "info@softreck.dev"}
 ]
 keywords = [
     "artificial intelligence",
