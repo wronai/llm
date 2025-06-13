@@ -2,7 +2,7 @@
 
 # Model Configuration
 model:
-  name: "mistralai/Mistral-7B-v0.1"
+  name: "facebook/opt-1.3b"
   trust_remote_code: true
   torch_dtype: "bfloat16"
   device_map: "auto"
@@ -79,7 +79,7 @@ logging:
   wandb_project: "wronai"
   wandb_run_name: "wronai-7b-base"
   log_level: "INFO"
-  report_to: ["tensorboard", "wandb"]
+  report_to: ["tensorboard"]
 
 # Hardware Optimization
 hardware:
