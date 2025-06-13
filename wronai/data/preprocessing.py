@@ -11,6 +11,7 @@ from .polish import normalize_polish_text, POLISH_DIACRITICS_MAP, load_polish_st
 
 logger = get_logger(__name__)
 
+
 class PolishTextPreprocessor:
     """
     Comprehensive text preprocessor for Polish language.
@@ -29,7 +30,7 @@ class PolishTextPreprocessor:
         lowercase: bool = False,
         remove_stopwords: bool = False,
         min_length: int = 10,
-        max_length: Optional[int] = None
+        max_length: Optional[int] = None,
     ):
         self.normalize_unicode = normalize_unicode
         self.fix_encoding = fix_encoding
@@ -56,21 +57,23 @@ class PolishTextPreprocessor:
     def _compile_patterns(self):
         """Compile regex patterns for efficiency."""
         # HTML tags
-        self.html_pattern = re.compile(r'<[^>]+>')
+        self.html_pattern = re.compile(r"<[^>]+>")
 
         # URLs
         self.url_pattern = re.compile(
-            r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+            r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
         )
 
         # Email addresses
-        self.email_pattern = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b')
+        self.email_pattern = re.compile(
+            r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
+        )
 
         # Multiple whitespace
-        self.whitespace_pattern = re.compile(r'\s+')
+        self.whitespace_pattern = re.compile(r"\s+")
 
         # Multiple punctuation
-        self.punct_pattern = re.compile(r'([.!?]){2,}')
+        self.punct_pattern = re.compile(r"([.!?]){2,}")
 
         # Non-Polish characters (but keep basic punctuation and numbers)
         self.non_polish_pattern = re.compile(
@@ -137,7 +140,7 @@ class PolishTextPreprocessor:
             return ""
 
         if self.max_length and len(text) > self.max_length:
-            text = text[:self.max_length]
+            text = text[: self.max_length]
 
         logger.debug(f"Preprocessed text: {original_length} -> {len(text)} chars")
         return text.strip()
@@ -146,18 +149,18 @@ class PolishTextPreprocessor:
         """Fix common encoding issues."""
         # Fix common encoding artifacts
         replacements = {
-            'â€™': "'",
-            'â€œ': '"',
-            'â€\u009d': '"',
-            'â€"': '—',
-            'â€"': '–',
-            'â€¦': '…',
-            'Ã¡': 'á',
-            'Ã©': 'é',
-            'Ã­': 'í',
-            'Ã³': 'ó',
-            'Ãº': 'ú',
-            'Ã±': 'ñ',
+            "â€™": "'",
+            "â€œ": '"',
+            "â€\u009d": '"',
+            'â€"': "—",
+            'â€"': "–",
+            "â€¦": "…",
+            "Ã¡": "á",
+            "Ã©": "é",
+            "Ã­": "í",
+            "Ã³": "ó",
+            "Ãº": "ú",
+            "Ã±": "ñ",
         }
 
         for wrong, correct in replacements.items():

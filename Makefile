@@ -1,15 +1,20 @@
 # WronAI Development Makefile
 # Simplified commands for development workflow
 
-.PHONY: help install install-dev clean test lint format docker-build docker-run prepare-data train inference
+.PHONY: help venv venv-activate install install-dev install-core install-ml install-nlp install-utils clean test lint format docker-build docker-run prepare-data train inference
 
 # Default target
 help:
 	@echo "🐦‍⬛ WronAI Development Commands"
 	@echo ""
 	@echo "Setup Commands:"
-	@echo "  install          Install production dependencies"
+	@echo "  venv            Create Python virtual environment"
+	@echo "  install          Install all dependencies"
 	@echo "  install-dev      Install development dependencies"
+	@echo "  install-core     Install core dependencies only"
+	@echo "  install-ml       Install ML-related dependencies"
+	@echo "  install-nlp      Install NLP-related dependencies"
+	@echo "  install-utils    Install utility dependencies"
 	@echo "  clean           Clean build artifacts and cache"
 	@echo ""
 	@echo "Development Commands:"
@@ -34,13 +39,32 @@ help:
 	@echo "  notebook        Start Jupyter notebook server"
 	@echo "  tensorboard     Start TensorBoard"
 
+# Virtual environment commands
+venv:
+	python -m venv wronai-env
+	@echo "Virtual environment created. Activate with:"
+	@echo "  source wronai-env/bin/activate  # Linux/Mac"
+	@echo "  wronai-env\Scripts\activate    # Windows"
+
 # Installation commands
 install:
-	pip install -e .
+	pip install -r requirements.txt
 
 install-dev:
 	pip install -e ".[dev,docs,inference]"
 	pre-commit install
+
+install-core:
+	pip install torch transformers accelerate peft datasets evaluate
+
+install-ml:
+	pip install bitsandbytes scipy safetensors wandb tensorboard
+
+install-nlp:
+	pip install tokenizers sentencepiece regex spacy
+
+install-utils:
+	pip install beautifulsoup4 requests aiohttp scrapy pyyaml omegaconf loguru rich
 
 # Clean commands
 clean:
@@ -58,8 +82,8 @@ clean:
 
 # Code quality commands
 format:
-	black .
-	isort .
+	black scripts/ wronai/ tests/ || echo "Warning: black formatter had issues"
+	isort scripts/ wronai/ tests/ || echo "Warning: isort had issues"
 
 lint:
 	flake8 .
@@ -176,16 +200,7 @@ memory-profile:
 
 # Model size analysis
 model-size:
-	python -c "
-import torch
-from transformers import AutoModel
-model = AutoModel.from_pretrained('checkpoints/wronai-7b')
-total_params = sum(p.numel() for p in model.parameters())
-trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-print(f'Total parameters: {total_params:,}')
-print(f'Trainable parameters: {trainable_params:,}')
-print(f'Model size: {total_params * 4 / 1024**3:.2f} GB (fp32)')
-"
+	python -c "import torch; from transformers import AutoModel; model = AutoModel.from_pretrained('checkpoints/wronai-7b'); total_params = sum(p.numel() for p in model.parameters()); trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad); print(f'Total parameters: {total_params:,}'); print(f'Trainable parameters: {trainable_params:,}'); print(f'Model size: {total_params * 4 / 1024**3:.2f} GB (fp32)');"
 
 # Download pre-trained models
 download-models:
@@ -195,17 +210,7 @@ download-models:
 
 # Health check
 health-check:
-	python -c "
-import torch
-print(f'PyTorch version: {torch.__version__}')
-print(f'CUDA available: {torch.cuda.is_available()}')
-if torch.cuda.is_available():
-    print(f'CUDA version: {torch.version.cuda}')
-    print(f'GPU count: {torch.cuda.device_count()}')
-    for i in range(torch.cuda.device_count()):
-        props = torch.cuda.get_device_properties(i)
-        print(f'GPU {i}: {props.name} ({props.total_memory // 1024**3} GB)')
-"
+	python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}'); \\\n\tif torch.cuda.is_available(): \\\n\t    print(f'CUDA version: {torch.version.cuda}'); \\\n\t    print(f'GPU count: {torch.cuda.device_count()}'); \\\n\t    for i in range(torch.cuda.device_count()): \\\n\t        props = torch.cuda.get_device_properties(i); \\\n\t        print(f'GPU {i}: {props.name} ({props.total_memory // 1024**3} GB)');"
 
 # Package information
 info:

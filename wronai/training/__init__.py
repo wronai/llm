@@ -11,11 +11,7 @@ from .utils import setup_training, prepare_model_for_training
 
 
 def train_model(
-        model,
-        dataset,
-        config: TrainingConfig,
-        output_dir: str = "./checkpoints",
-        **kwargs
+    model, dataset, config: TrainingConfig, output_dir: str = "./checkpoints", **kwargs
 ):
     """
     High-level function to train a WronAI model.
@@ -30,12 +26,7 @@ def train_model(
     Returns:
         Trained model and training results
     """
-    trainer = WronAITrainer(
-        model=model,
-        config=config,
-        output_dir=output_dir,
-        **kwargs
-    )
+    trainer = WronAITrainer(model=model, config=config, output_dir=output_dir, **kwargs)
 
     results = trainer.train(dataset)
     return model, results
@@ -50,5 +41,5 @@ __all__ = [
     "get_scheduler",
     "setup_training",
     "prepare_model_for_training",
-    "train_model"
+    "train_model",
 ]

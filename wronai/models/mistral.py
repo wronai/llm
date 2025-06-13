@@ -12,6 +12,7 @@ from ..data.polish import normalize_polish_text, POLISH_DIACRITICS_MAP
 
 logger = get_logger(__name__)
 
+
 class WronAIMistral(WronAIModel):
     """
     WronAI implementation based on Mistral architecture.
@@ -37,7 +38,7 @@ class WronAIMistral(WronAIModel):
                 load_in_4bit=True,
                 bnb_4bit_compute_dtype=torch.bfloat16,
                 bnb_4bit_quant_type=self.config.quantization_type,
-                bnb_4bit_use_double_quant=True
+                bnb_4bit_use_double_quant=True,
             )
             self._is_quantized = True
 
@@ -47,7 +48,7 @@ class WronAIMistral(WronAIModel):
             quantization_config=quantization_config,
             torch_dtype=getattr(torch, self.config.torch_dtype),
             device_map=self.config.device_map,
-            trust_remote_code=self.config.trust_remote_code
+            trust_remote_code=self.config.trust_remote_code,
         )
 
         # Enable gradient checkpointing if requested
@@ -76,7 +77,7 @@ class WronAIMistral(WronAIModel):
                 lora_dropout=self.config.lora_dropout,
                 bias="none",
                 task_type="CAUSAL_LM",
-                target_modules=self.config.lora_target_modules
+                target_modules=self.config.lora_target_modules,
             )
 
             # Apply LoRA
@@ -109,7 +110,7 @@ class WronAIMistral(WronAIModel):
         text = self._fix_polish_typography(text)
 
         # Standardize whitespace
-        text = re.sub(r'\s+', ' ', text).strip()
+        text = re.sub(r"\s+", " ", text).strip()
 
         return text
 
@@ -119,15 +120,15 @@ class WronAIMistral(WronAIModel):
         text = re.sub(r'["„"]([^"]*?)[""]', r'„\1"', text)
 
         # Fix dashes
-        text = text.replace(' - ', ' – ')
-        text = text.replace('--', '—')
+        text = text.replace(" - ", " – ")
+        text = text.replace("--", "—")
 
         # Fix ellipsis
-        text = re.sub(r'\.{3,}', '…', text)
+        text = re.sub(r"\.{3,}", "…", text)
 
         # Fix spaces around punctuation
-        text = re.sub(r'\s+([,.!?;:])', r'\1', text)
-        text = re.sub(r'([¿¡])\s+', r'\1', text)
+        text = re.sub(r"\s+([,.!?;:])", r"\1", text)
+        text = re.sub(r"([¿¡])\s+", r"\1", text)
 
         return text
 
@@ -146,10 +147,10 @@ class WronAIMistral(WronAIModel):
 
         # Remove special tokens
         for token in self.config.polish_tokens:
-            text = text.replace(token, '')
+            text = text.replace(token, "")
 
         # Clean up extra whitespace
-        text = re.sub(r'\s+', ' ', text).strip()
+        text = re.sub(r"\s+", " ", text).strip()
 
         # Fix sentence structure
         text = self._fix_sentence_structure(text)
@@ -162,25 +163,32 @@ class WronAIMistral(WronAIModel):
     def _fix_sentence_structure(self, text: str) -> str:
         """Fix sentence structure and punctuation."""
         # Ensure sentences end with proper punctuation
-        sentences = re.split(r'([.!?]+)', text)
+        sentences = re.split(r"([.!?]+)", text)
         fixed_sentences = []
 
         for i in range(0, len(sentences) - 1, 2):
             sentence = sentences[i].strip()
-            punct = sentences[i + 1] if i + 1 < len(sentences) else '.'
+            punct = sentences[i + 1] if i + 1 < len(sentences) else "."
 
             if sentence:
                 # Capitalize first letter
-                sentence = sentence[0].upper() + sentence[1:] if len(sentence) > 1 else sentence.upper()
+                sentence = (
+                    sentence[0].upper() + sentence[1:]
+                    if len(sentence) > 1
+                    else sentence.upper()
+                )
                 fixed_sentences.append(sentence + punct)
 
-        return ' '.join(fixed_sentences)
+        return " ".join(fixed_sentences)
 
     def _fix_capitalization(self, text: str) -> str:
         """Fix Polish capitalization rules."""
         # Capitalize after sentence endings
-        text = re.sub(r'([.!?]+\s+)([a-ząćęłńóśźż])',
-                     lambda m: m.group(1) + m.group(2).upper(), text)
+        text = re.sub(
+            r"([.!?]+\s+)([a-ząćęłńóśźż])",
+            lambda m: m.group(1) + m.group(2).upper(),
+            text,
+        )
 
         # Capitalize first letter
         if text:
@@ -197,7 +205,7 @@ class WronAIMistral(WronAIModel):
         top_k: int = 50,
         repetition_penalty: float = 1.1,
         do_sample: bool = True,
-        **kwargs
+        **kwargs,
     ) -> str:
         """
         Generate Polish text with optimized parameters.
@@ -227,7 +235,7 @@ class WronAIMistral(WronAIModel):
             formatted_prompt,
             return_tensors="pt",
             truncation=True,
-            max_length=self.config.max_sequence_length - max_length
+            max_length=self.config.max_sequence_length - max_length,
         ).to(self.device)
 
         # Generate
@@ -243,13 +251,12 @@ class WronAIMistral(WronAIModel):
                 do_sample=do_sample,
                 pad_token_id=self.tokenizer.eos_token_id,
                 eos_token_id=self.tokenizer.eos_token_id,
-                **kwargs
+                **kwargs,
             )
 
         # Decode and clean
         generated_text = self.tokenizer.decode(
-            outputs[0][inputs.input_ids.shape[1]:],
-            skip_special_tokens=True
+            outputs[0][inputs.input_ids.shape[1] :], skip_special_tokens=True
         )
 
         return self.postprocess_text(generated_text)
@@ -268,11 +275,15 @@ class WronAIMistral(WronAIModel):
             "config": {
                 "max_sequence_length": self.config.max_sequence_length,
                 "lora_r": self.config.lora_r if self._has_lora else None,
-                "quantization_bits": self.config.quantization_bits if self._is_quantized else None
-            }
+                "quantization_bits": (
+                    self.config.quantization_bits if self._is_quantized else None
+                ),
+            },
         }
 
-    def estimate_memory_usage(self, batch_size: int = 1, sequence_length: int = None) -> Dict[str, float]:
+    def estimate_memory_usage(
+        self, batch_size: int = 1, sequence_length: int = None
+    ) -> Dict[str, float]:
         """
         Estimate memory usage for given batch size and sequence length.
 
@@ -311,5 +322,8 @@ class WronAIMistral(WronAIModel):
             "activation_memory": activation_memory,
             "gradient_memory": gradient_memory,
             "optimizer_memory": optimizer_memory,
-            "total_estimated": model_memory + activation_memory + gradient_memory + optimizer_memory
+            "total_estimated": model_memory
+            + activation_memory
+            + gradient_memory
+            + optimizer_memory,
         }

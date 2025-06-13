@@ -11,10 +11,10 @@ from .collectors import PolishDataCollector, InstructionDataCollector
 
 
 def prepare_polish_data(
-        data_path: str,
-        tokenizer_name: str = "mistralai/Mistral-7B-v0.1",
-        max_length: int = 2048,
-        instruction_format: bool = True
+    data_path: str,
+    tokenizer_name: str = "mistralai/Mistral-7B-v0.1",
+    max_length: int = 2048,
+    instruction_format: bool = True,
 ):
     """
     Prepare Polish data for training.
@@ -39,9 +39,7 @@ def prepare_polish_data(
 
     # Create dataset
     dataset = dataset_class(
-        data_path=data_path,
-        tokenizer=tokenizer,
-        max_length=max_length
+        data_path=data_path, tokenizer=tokenizer, max_length=max_length
     )
 
     return dataset
@@ -57,5 +55,5 @@ __all__ = [
     "InstructionDataCollector",
     "setup_polish_tokenizer",
     "clean_polish_text",
-    "prepare_polish_data"
+    "prepare_polish_data",
 ]

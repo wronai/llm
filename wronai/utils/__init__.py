@@ -14,7 +14,7 @@ from .helpers import (
     format_time,
     format_bytes,
     ensure_dir,
-    get_model_size
+    get_model_size,
 )
 
 __all__ = [
@@ -39,5 +39,5 @@ __all__ = [
     "format_time",
     "format_bytes",
     "ensure_dir",
-    "get_model_size"
+    "get_model_size",
 ]

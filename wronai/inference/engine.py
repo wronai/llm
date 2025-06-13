@@ -15,6 +15,7 @@ from ..utils.memory import memory_monitor
 
 logger = get_logger(__name__)
 
+
 @dataclass
 class InferenceConfig:
     """Configuration for inference engine."""
@@ -69,6 +70,7 @@ class InferenceConfig:
 
         return GenerationConfig(**config_dict)
 
+
 class InferenceEngine:
     """
     High-performance inference engine for WronAI models.
@@ -78,7 +80,7 @@ class InferenceEngine:
         self,
         model: WronAIModel,
         config: Optional[InferenceConfig] = None,
-        device: Optional[str] = None
+        device: Optional[str] = None,
     ):
         self.model = model
         self.config = config or InferenceConfig()
@@ -97,7 +99,7 @@ class InferenceEngine:
             "total_generations": 0,
             "total_tokens": 0,
             "total_time": 0.0,
-            "average_tokens_per_second": 0.0
+            "average_tokens_per_second": 0.0,
         }
 
         logger.info(f"Inference engine initialized on {self.device}")
@@ -106,7 +108,7 @@ class InferenceEngine:
         self,
         prompt: Union[str, List[str]],
         config: Optional[InferenceConfig] = None,
-        **kwargs
+        **kwargs,
     ) -> Union[str, List[str]]:
         """
         Generate text from prompt(s).
@@ -128,18 +130,13 @@ class InferenceEngine:
         # Handle batch of prompts
         return self._generate_batch(prompt, generation_config, **kwargs)
 
-    def _generate_single(
-        self,
-        prompt: str,
-        config: InferenceConfig,
-        **kwargs
-    ) -> str:
+    def _generate_single(self, prompt: str, config: InferenceConfig, **kwargs) -> str:
         """Generate from single prompt."""
         start_time = time.time()
 
         try:
             # Preprocess prompt
-            if hasattr(self.model, 'preprocess_text'):
+            if hasattr(self.model, "preprocess_text"):
                 processed_prompt = self.model.preprocess_text(prompt)
             else:
                 processed_prompt = prompt
@@ -155,7 +152,8 @@ class InferenceEngine:
                 processed_prompt,
                 return_tensors="pt",
                 truncation=True,
-                max_length=self.model.config.max_sequence_length - (config.max_new_tokens or config.max_length)
+                max_length=self.model.config.max_sequence_length
+                - (config.max_new_tokens or config.max_length),
             ).to(self.device)
 
             input_length = inputs.input_ids.shape[1]
@@ -169,7 +167,11 @@ class InferenceEngine:
                     setattr(generation_config, key, value)
 
             with torch.no_grad():
-                with memory_monitor() if torch.cuda.is_available() else torch.inference_mode():
+                with (
+                    memory_monitor()
+                    if torch.cuda.is_available()
+                    else torch.inference_mode()
+                ):
                     outputs = self.model.model.generate(
                         input_ids=inputs.input_ids,
                         attention_mask=inputs.attention_mask,
@@ -181,12 +183,11 @@ class InferenceEngine:
             # Decode only the generated part
             generated_tokens = outputs[0][input_length:]
             generated_text = self.model.tokenizer.decode(
-                generated_tokens,
-                skip_special_tokens=config.remove_special_tokens
+                generated_tokens, skip_special_tokens=config.remove_special_tokens
             )
 
             # Postprocess if available
-            if hasattr(self.model, 'postprocess_text'):
+            if hasattr(self.model, "postprocess_text"):
                 generated_text = self.model.postprocess_text(generated_text)
 
             # Update statistics
@@ -200,10 +201,7 @@ class InferenceEngine:
             raise
 
     def _generate_batch(
-        self,
-        prompts: List[str],
-        config: InferenceConfig,
-        **kwargs
+        self, prompts: List[str], config: InferenceConfig, **kwargs
     ) -> List[str]:
         """Generate from batch of prompts."""
         # For now, process sequentially
@@ -224,7 +222,7 @@ class InferenceEngine:
         self,
         message: str,
         conversation_history: Optional[List[Dict[str, str]]] = None,
-        config: Optional[InferenceConfig] = None
+        config: Optional[InferenceConfig] = None,
     ) -> str:
         """
         Generate chat response with conversation context.
@@ -246,9 +244,7 @@ class InferenceEngine:
         return response
 
     def _build_conversation_context(
-        self,
-        message: str,
-        history: Optional[List[Dict[str, str]]] = None
+        self, message: str, history: Optional[List[Dict[str, str]]] = None
     ) -> str:
         """Build conversation context from history."""
         context_parts = ["<polish><dialogue>"]
@@ -277,16 +273,25 @@ class InferenceEngine:
 
         if self.generation_stats["total_time"] > 0:
             self.generation_stats["average_tokens_per_second"] = (
-                self.generation_stats["total_tokens"] / self.generation_stats["total_time"]
+                self.generation_stats["total_tokens"]
+                / self.generation_stats["total_time"]
             )
 
     def get_stats(self) -> Dict[str, Any]:
         """Get generation statistics."""
         return {
             **self.generation_stats,
-            "model_info": self.model.get_model_info() if hasattr(self.model, 'get_model_info') else {},
+            "model_info": (
+                self.model.get_model_info()
+                if hasattr(self.model, "get_model_info")
+                else {}
+            ),
             "device": str(self.device),
-            "memory_usage": self.model.get_memory_usage() if hasattr(self.model, 'get_memory_usage') else {}
+            "memory_usage": (
+                self.model.get_memory_usage()
+                if hasattr(self.model, "get_memory_usage")
+                else {}
+            ),
         }
 
     def reset_stats(self):
@@ -295,14 +300,14 @@ class InferenceEngine:
             "total_generations": 0,
             "total_tokens": 0,
             "total_time": 0.0,
-            "average_tokens_per_second": 0.0
+            "average_tokens_per_second": 0.0,
         }
 
     def benchmark(
         self,
         prompts: List[str],
         config: Optional[InferenceConfig] = None,
-        warmup_runs: int = 3
+        warmup_runs: int = 3,
     ) -> Dict[str, float]:
         """
         Benchmark inference performance.
@@ -340,14 +345,11 @@ class InferenceEngine:
             "tokens_per_second": self.generation_stats["average_tokens_per_second"],
             "average_generation_time": total_time / len(prompts),
             "total_tokens": self.generation_stats["total_tokens"],
-            "average_tokens_per_generation": self.generation_stats["total_tokens"] / len(prompts)
+            "average_tokens_per_generation": self.generation_stats["total_tokens"]
+            / len(prompts),
         }
 
-    def estimate_generation_time(
-        self,
-        prompt_length: int,
-        target_length: int
-    ) -> float:
+    def estimate_generation_time(self, prompt_length: int, target_length: int) -> float:
         """
         Estimate generation time based on current performance.
 

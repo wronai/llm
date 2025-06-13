@@ -28,8 +28,20 @@ WronAI bazuje na sprawdzonych rozwiązaniach:
 git clone https://github.com/wronai/llm.git
 cd llm
 
+# Utworzenie i aktywacja wirtualnego środowiska (zalecane)
+python -m venv wronai-env
+source wronai-env/bin/activate  # Linux/Mac
+# wronai-env\Scripts\activate  # Windows
+
 # Instalacja dependencies
 pip install -r requirements.txt
+
+# Alternatywna instalacja w przypadku problemów (instalacja pakietów pojedynczo)
+# pip install torch transformers accelerate peft datasets evaluate
+# pip install bitsandbytes scipy tokenizers sentencepiece regex spacy
+# pip install beautifulsoup4 requests aiohttp scrapy
+# pip install pyyaml omegaconf loguru rich
+# pip install wandb
 
 # Przygotowanie danych
 python scripts/prepare_data.py
@@ -40,6 +52,8 @@ python scripts/train.py --config configs/default.yaml
 # Inferencja
 python scripts/inference.py --model checkpoints/wronai-7b --prompt "Opowiedz o Polsce"
 ```
+
+> **Uwaga**: Jeśli napotkasz problem z instalacją modelu języka polskiego (`pl_core_news_sm`), możesz kontynuować pracę z projektem. Model ten jest opcjonalny i używany tylko do niektórych zaawansowanych funkcji przetwarzania tekstu.
 
 ## 📊 Wyniki
 

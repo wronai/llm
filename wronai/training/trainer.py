@@ -12,7 +12,7 @@ from transformers import (
     Trainer,
     TrainingArguments,
     DataCollatorForLanguageModeling,
-    EarlyStoppingCallback
+    EarlyStoppingCallback,
 )
 from datasets import Dataset
 
@@ -22,6 +22,7 @@ from ..utils.memory import memory_monitor, clear_cache
 from .callbacks import PolishEvaluationCallback, MemoryMonitorCallback
 
 logger = get_logger(__name__)
+
 
 @dataclass
 class TrainingConfig:
@@ -103,17 +104,18 @@ class TrainingConfig:
 
         # Remove custom fields not supported by TrainingArguments
         custom_fields = {
-            'enable_polish_evaluation',
-            'polish_eval_samples',
-            'max_seq_length',
-            'early_stopping_patience',
-            'early_stopping_threshold'
+            "enable_polish_evaluation",
+            "polish_eval_samples",
+            "max_seq_length",
+            "early_stopping_patience",
+            "early_stopping_threshold",
         }
 
         for field in custom_fields:
             args_dict.pop(field, None)
 
         return TrainingArguments(**args_dict)
+
 
 class WronAITrainer:
     """
@@ -127,7 +129,7 @@ class WronAITrainer:
         train_dataset: Optional[Dataset] = None,
         eval_dataset: Optional[Dataset] = None,
         data_collator: Optional[Any] = None,
-        callbacks: Optional[List[Any]] = None
+        callbacks: Optional[List[Any]] = None,
     ):
         self.model = model
         self.config = config
@@ -137,9 +139,7 @@ class WronAITrainer:
         # Setup data collator
         if data_collator is None:
             self.data_collator = DataCollatorForLanguageModeling(
-                tokenizer=model.tokenizer,
-                mlm=False,
-                pad_to_multiple_of=8
+                tokenizer=model.tokenizer, mlm=False, pad_to_multiple_of=8
             )
         else:
             self.data_collator = data_collator
@@ -160,7 +160,7 @@ class WronAITrainer:
         if self.config.early_stopping_patience > 0:
             early_stopping = EarlyStoppingCallback(
                 early_stopping_patience=self.config.early_stopping_patience,
-                early_stopping_threshold=self.config.early_stopping_threshold
+                early_stopping_threshold=self.config.early_stopping_threshold,
             )
             self.callbacks.append(early_stopping)
 
@@ -188,14 +188,14 @@ class WronAITrainer:
             tokenizer=self.model.tokenizer,
             data_collator=self.data_collator,
             callbacks=self.callbacks,
-            compute_metrics=self._compute_metrics if self.eval_dataset else None
+            compute_metrics=self._compute_metrics if self.eval_dataset else None,
         )
 
     def train(
         self,
         train_dataset: Optional[Dataset] = None,
         eval_dataset: Optional[Dataset] = None,
-        resume_from_checkpoint: Optional[str] = None
+        resume_from_checkpoint: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Train the model.
@@ -231,7 +231,9 @@ class WronAITrainer:
             clear_cache()
 
             # Start training
-            train_result = self.trainer.train(resume_from_checkpoint=resume_from_checkpoint)
+            train_result = self.trainer.train(
+                resume_from_checkpoint=resume_from_checkpoint
+            )
 
             # Save final model
             self.save_model()
@@ -249,9 +251,7 @@ class WronAITrainer:
             clear_cache()
 
     def evaluate(
-        self,
-        eval_dataset: Optional[Dataset] = None,
-        metric_key_prefix: str = "eval"
+        self, eval_dataset: Optional[Dataset] = None, metric_key_prefix: str = "eval"
     ) -> Dict[str, float]:
         """
         Evaluate the model.
@@ -281,11 +281,7 @@ class WronAITrainer:
             logger.error(f"Evaluation failed: {e}")
             raise
 
-    def predict(
-        self,
-        test_dataset: Dataset,
-        metric_key_prefix: str = "test"
-    ) -> Any:
+    def predict(self, test_dataset: Dataset, metric_key_prefix: str = "test") -> Any:
         """
         Generate predictions on test dataset.
 
@@ -300,8 +296,7 @@ class WronAITrainer:
 
         try:
             predictions = self.trainer.predict(
-                test_dataset=test_dataset,
-                metric_key_prefix=metric_key_prefix
+                test_dataset=test_dataset, metric_key_prefix=metric_key_prefix
             )
 
             logger.info("Prediction completed")
@@ -331,7 +326,8 @@ class WronAITrainer:
         # Save training config
         config_path = os.path.join(save_dir, "training_config.json")
         import json
-        with open(config_path, 'w') as f:
+
+        with open(config_path, "w") as f:
             json.dump(asdict(self.config), f, indent=2)
 
         logger.info("Model saved successfully")
@@ -372,42 +368,45 @@ class WronAITrainer:
             log_probs = torch.log(selected_probs + 1e-10)
             perplexity = torch.exp(-log_probs.mean()).item()
         else:
-            perplexity = float('inf')
+            perplexity = float("inf")
 
-        return {
-            "perplexity": perplexity,
-            "num_tokens": len(labels)
-        }
+        return {"perplexity": perplexity, "num_tokens": len(labels)}
 
     def _log_training_info(self):
         """Log training information."""
         logger.info("=== Training Information ===")
         logger.info(f"Model: {self.model.config.model_name}")
         logger.info(f"Output directory: {self.config.output_dir}")
-        logger.info(f"Training samples: {len(self.train_dataset) if self.train_dataset else 0}")
-        logger.info(f"Evaluation samples: {len(self.eval_dataset) if self.eval_dataset else 0}")
+        logger.info(
+            f"Training samples: {len(self.train_dataset) if self.train_dataset else 0}"
+        )
+        logger.info(
+            f"Evaluation samples: {len(self.eval_dataset) if self.eval_dataset else 0}"
+        )
         logger.info(f"Epochs: {self.config.num_train_epochs}")
         logger.info(f"Batch size: {self.config.per_device_train_batch_size}")
         logger.info(f"Gradient accumulation: {self.config.gradient_accumulation_steps}")
         logger.info(f"Learning rate: {self.config.learning_rate}")
 
         # Model info
-        if hasattr(self.model, 'print_parameter_info'):
+        if hasattr(self.model, "print_parameter_info"):
             self.model.print_parameter_info()
 
         # Memory info
-        if hasattr(self.model, 'get_memory_usage'):
+        if hasattr(self.model, "get_memory_usage"):
             memory_info = self.model.get_memory_usage()
-            logger.info(f"GPU memory usage: {memory_info.get('gpu_memory_percent', 0):.1f}%")
+            logger.info(
+                f"GPU memory usage: {memory_info.get('gpu_memory_percent', 0):.1f}%"
+            )
 
     def _log_training_results(self, train_result):
         """Log training results."""
         logger.info("=== Training Results ===")
 
-        if hasattr(train_result, 'training_loss'):
+        if hasattr(train_result, "training_loss"):
             logger.info(f"Final training loss: {train_result.training_loss:.4f}")
 
-        if hasattr(train_result, 'metrics'):
+        if hasattr(train_result, "metrics"):
             for key, value in train_result.metrics.items():
                 logger.info(f"{key}: {value}")
 
@@ -438,7 +437,11 @@ class WronAITrainer:
             "eval_steps": self.trainer.state.eval_steps,
             "best_metric": self.trainer.state.best_metric,
             "best_model_checkpoint": self.trainer.state.best_model_checkpoint,
-            "log_history": self.trainer.state.log_history[-5:] if self.trainer.state.log_history else []
+            "log_history": (
+                self.trainer.state.log_history[-5:]
+                if self.trainer.state.log_history
+                else []
+            ),
         }
 
     def resume_training(self, checkpoint_path: str) -> Dict[str, Any]:
@@ -460,7 +463,7 @@ class WronAITrainer:
         hp_space: Dict[str, Any],
         compute_objective: Optional[callable] = None,
         n_trials: int = 10,
-        direction: str = "minimize"
+        direction: str = "minimize",
     ) -> Any:
         """
         Perform hyperparameter search.
@@ -510,7 +513,7 @@ class WronAITrainer:
             else:
                 # Default: minimize validation loss
                 eval_result = self.evaluate()
-                return eval_result.get('eval_loss', float('inf'))
+                return eval_result.get("eval_loss", float("inf"))
 
         # Create study
         study = optuna.create_study(direction=direction)

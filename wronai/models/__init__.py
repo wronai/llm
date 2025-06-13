@@ -10,11 +10,9 @@ from .llama import WronAILlama
 from .quantization import QuantizedModel, load_quantized_model
 from .lora import LoRAModel, apply_lora_adapters
 
+
 def load_model(
-    model_name: str,
-    config: dict = None,
-    quantize: bool = True,
-    device: str = "auto"
+    model_name: str, config: dict = None, quantize: bool = True, device: str = "auto"
 ):
     """
     Load WronAI model with automatic architecture detection.
@@ -36,16 +34,13 @@ def load_model(
         # Default to base model
         model_class = WronAIModel
 
-    model = model_class.from_pretrained(
-        model_name,
-        config=config,
-        device_map=device
-    )
+    model = model_class.from_pretrained(model_name, config=config, device_map=device)
 
     if quantize:
         model = load_quantized_model(model)
 
     return model
+
 
 __all__ = [
     "WronAIModel",
@@ -56,5 +51,5 @@ __all__ = [
     "LoRAModel",
     "load_model",
     "load_quantized_model",
-    "apply_lora_adapters"
+    "apply_lora_adapters",
 ]

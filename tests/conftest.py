@@ -47,7 +47,7 @@ def sample_polish_texts():
         "To jest test polskiego modelu językowego.",
         "Sztuczna inteligencja może pomóc w rozwiązywaniu problemów.",
         "Polska to piękny kraj w Europie Środkowej.",
-        "Machine learning i deep learning to fascynujące dziedziny."
+        "Machine learning i deep learning to fascynujące dziedziny.",
     ]
 
 
@@ -57,16 +57,16 @@ def sample_instruction_data():
     return [
         {
             "instruction": "Przetłumacz na język angielski: 'Miło Cię poznać'",
-            "response": "'Miło Cię poznać' w języku angielskim to 'Nice to meet you'."
+            "response": "'Miło Cię poznać' w języku angielskim to 'Nice to meet you'.",
         },
         {
             "instruction": "Wyjaśnij czym jest sztuczna inteligencja",
-            "response": "Sztuczna inteligencja to dziedzina informatyki zajmująca się tworzeniem systemów zdolnych do wykonywania zadań wymagających ludzkiej inteligencji."
+            "response": "Sztuczna inteligencja to dziedzina informatyki zajmująca się tworzeniem systemów zdolnych do wykonywania zadań wymagających ludzkiej inteligencji.",
         },
         {
             "instruction": "Podaj przykład polskiego przysłowia",
-            "response": "Przykładem polskiego przysłowia jest: 'Co ma wisieć, nie utonie'."
-        }
+            "response": "Przykładem polskiego przysłowia jest: 'Co ma wisieć, nie utonie'.",
+        },
     ]
 
 
@@ -85,7 +85,7 @@ def test_model_config():
         lora_r=8,
         lora_alpha=16,
         quantization_enabled=False,  # Disable for testing
-        polish_tokens=["<test>", "</test>"]
+        polish_tokens=["<test>", "</test>"],
     )
 
 
@@ -95,7 +95,7 @@ def mock_training_data(temp_dir, sample_instruction_data):
     import json
 
     data_file = temp_dir / "training_data.json"
-    with open(data_file, 'w', encoding='utf-8') as f:
+    with open(data_file, "w", encoding="utf-8") as f:
         json.dump(sample_instruction_data, f, ensure_ascii=False, indent=2)
 
     return str(data_file)
@@ -107,10 +107,10 @@ def mock_polish_corpus(temp_dir, sample_polish_texts):
     import json
 
     corpus_file = temp_dir / "polish_corpus.jsonl"
-    with open(corpus_file, 'w', encoding='utf-8') as f:
+    with open(corpus_file, "w", encoding="utf-8") as f:
         for text in sample_polish_texts:
             json.dump({"text": text, "source": "test"}, f, ensure_ascii=False)
-            f.write('\n')
+            f.write("\n")
 
     return str(corpus_file)
 
@@ -150,7 +150,7 @@ def minimal_training_config():
         "eval_steps": 10,
         "max_steps": 5,  # Very short training
         "warmup_ratio": 0.0,
-        "weight_decay": 0.0
+        "weight_decay": 0.0,
     }
 
 
@@ -162,31 +162,19 @@ def polish_test_prompts():
         "Jakie są tradycyjne polskie potrawy?",
         "Wyjaśnij pojęcie sztucznej inteligencji:",
         "Przetłumacz na angielski: 'Dziękuję bardzo'",
-        "Napisz krótki wiersz o jesieni:"
+        "Napisz krótki wiersz o jesieni:",
     ]
 
 
 # Pytest markers for different test categories
 def pytest_configure(config):
     """Configure pytest markers."""
-    config.addinivalue_line(
-        "markers", "slow: mark test as slow running"
-    )
-    config.addinivalue_line(
-        "markers", "gpu: mark test as requiring GPU"
-    )
-    config.addinivalue_line(
-        "markers", "integration: mark test as integration test"
-    )
-    config.addinivalue_line(
-        "markers", "unit: mark test as unit test"
-    )
-    config.addinivalue_line(
-        "markers", "e2e: mark test as end-to-end test"
-    )
-    config.addinivalue_line(
-        "markers", "polish: mark test as Polish language specific"
-    )
+    config.addinivalue_line("markers", "slow: mark test as slow running")
+    config.addinivalue_line("markers", "gpu: mark test as requiring GPU")
+    config.addinivalue_line("markers", "integration: mark test as integration test")
+    config.addinivalue_line("markers", "unit: mark test as unit test")
+    config.addinivalue_line("markers", "e2e: mark test as end-to-end test")
+    config.addinivalue_line("markers", "polish: mark test as Polish language specific")
 
 
 # Auto-use fixtures for cleanup

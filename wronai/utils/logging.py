@@ -7,10 +7,11 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+
 def setup_logging(
     level: str = "INFO",
     log_file: Optional[str] = None,
-    format_string: Optional[str] = None
+    format_string: Optional[str] = None,
 ) -> logging.Logger:
     """
     Setup logging configuration for WronAI.
@@ -24,15 +25,11 @@ def setup_logging(
         Configured logger
     """
     if format_string is None:
-        format_string = (
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        format_string = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
     # Configure root logger
     logging.basicConfig(
-        level=getattr(logging, level.upper()),
-        format=format_string,
-        handlers=[]
+        level=getattr(logging, level.upper()), format=format_string, handlers=[]
     )
 
     # Console handler
@@ -57,6 +54,7 @@ def setup_logging(
 
     return logger
 
+
 def get_logger(name: str) -> logging.Logger:
     """
     Get a logger for a specific module.
@@ -69,22 +67,24 @@ def get_logger(name: str) -> logging.Logger:
     """
     return logging.getLogger(f"wronai.{name}")
 
+
 class ColoredFormatter(logging.Formatter):
     """Colored formatter for console output."""
 
     COLORS = {
-        'DEBUG': '\033[36m',     # Cyan
-        'INFO': '\033[32m',      # Green
-        'WARNING': '\033[33m',   # Yellow
-        'ERROR': '\033[31m',     # Red
-        'CRITICAL': '\033[35m',  # Magenta
-        'RESET': '\033[0m'       # Reset
+        "DEBUG": "\033[36m",  # Cyan
+        "INFO": "\033[32m",  # Green
+        "WARNING": "\033[33m",  # Yellow
+        "ERROR": "\033[31m",  # Red
+        "CRITICAL": "\033[35m",  # Magenta
+        "RESET": "\033[0m",  # Reset
     }
 
     def format(self, record):
-        log_color = self.COLORS.get(record.levelname, self.COLORS['RESET'])
+        log_color = self.COLORS.get(record.levelname, self.COLORS["RESET"])
         record.levelname = f"{log_color}{record.levelname}{self.COLORS['RESET']}"
         return super().format(record)
+
 
 def setup_colored_logging(level: str = "INFO") -> logging.Logger:
     """Setup colored console logging."""

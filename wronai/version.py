@@ -13,6 +13,7 @@ MIN_PYTHON_VERSION = (3, 8)
 MIN_TORCH_VERSION = "2.0.0"
 MIN_TRANSFORMERS_VERSION = "4.35.0"
 
+
 def get_version_info():
     """Get detailed version information."""
     return {
@@ -23,5 +24,5 @@ def get_version_info():
         "date": __date__,
         "python_required": ".".join(map(str, MIN_PYTHON_VERSION)),
         "torch_required": MIN_TORCH_VERSION,
-        "transformers_required": MIN_TRANSFORMERS_VERSION
+        "transformers_required": MIN_TRANSFORMERS_VERSION,
     }

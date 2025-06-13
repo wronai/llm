@@ -27,40 +27,44 @@ def get_memory_usage() -> Dict[str, float]:
 
     # CPU memory
     cpu_memory = psutil.virtual_memory()
-    memory_info.update({
-        "cpu_memory_total_gb": cpu_memory.total / (1024 ** 3),
-        "cpu_memory_used_gb": cpu_memory.used / (1024 ** 3),
-        "cpu_memory_percent": cpu_memory.percent
-    })
+    memory_info.update(
+        {
+            "cpu_memory_total_gb": cpu_memory.total / (1024**3),
+            "cpu_memory_used_gb": cpu_memory.used / (1024**3),
+            "cpu_memory_percent": cpu_memory.percent,
+        }
+    )
 
     # GPU memory
     if torch.cuda.is_available():
         try:
             torch.cuda.synchronize()
-            memory_used = torch.cuda.memory_allocated() / (1024 ** 3)
-            memory_total = torch.cuda.get_device_properties(0).total_memory / (1024 ** 3)
+            memory_used = torch.cuda.memory_allocated() / (1024**3)
+            memory_total = torch.cuda.get_device_properties(0).total_memory / (1024**3)
             memory_percent = (memory_used / memory_total) * 100
 
-            memory_info.update({
-                "gpu_memory_total_gb": memory_total,
-                "gpu_memory_used_gb": memory_used,
-                "gpu_memory_percent": memory_percent,
-                "gpu_memory_reserved_gb": torch.cuda.memory_reserved() / (1024 ** 3),
-                "gpu_memory_cached_gb": torch.cuda.memory_cached() / (1024 ** 3)
-            })
+            memory_info.update(
+                {
+                    "gpu_memory_total_gb": memory_total,
+                    "gpu_memory_used_gb": memory_used,
+                    "gpu_memory_percent": memory_percent,
+                    "gpu_memory_reserved_gb": torch.cuda.memory_reserved() / (1024**3),
+                    "gpu_memory_cached_gb": torch.cuda.memory_cached() / (1024**3),
+                }
+            )
         except Exception as e:
             logger.warning(f"Failed to get GPU memory info: {e}")
-            memory_info.update({
-                "gpu_memory_total_gb": 0,
-                "gpu_memory_used_gb": 0,
-                "gpu_memory_percent": 0
-            })
+            memory_info.update(
+                {
+                    "gpu_memory_total_gb": 0,
+                    "gpu_memory_used_gb": 0,
+                    "gpu_memory_percent": 0,
+                }
+            )
     else:
-        memory_info.update({
-            "gpu_memory_total_gb": 0,
-            "gpu_memory_used_gb": 0,
-            "gpu_memory_percent": 0
-        })
+        memory_info.update(
+            {"gpu_memory_total_gb": 0, "gpu_memory_used_gb": 0, "gpu_memory_percent": 0}
+        )
 
     return memory_info
 
@@ -244,11 +248,11 @@ class MemoryMonitor:
 
 
 def estimate_model_memory(
-        num_parameters: int,
-        precision: str = "float16",
-        quantization: Optional[str] = None,
-        batch_size: int = 1,
-        sequence_length: int = 2048
+    num_parameters: int,
+    precision: str = "float16",
+    quantization: Optional[str] = None,
+    batch_size: int = 1,
+    sequence_length: int = 2048,
 ) -> Dict[str, float]:
     """
     Estimate memory requirements for a model.
@@ -269,7 +273,7 @@ def estimate_model_memory(
         "float16": 2,
         "bfloat16": 2,
         "int8": 1,
-        "int4": 0.5
+        "int4": 0.5,
     }
 
     # Determine effective precision
@@ -281,12 +285,12 @@ def estimate_model_memory(
         bytes_per_param = precision_bytes.get(precision, 2)
 
     # Model weights
-    model_memory = num_parameters * bytes_per_param / (1024 ** 3)
+    model_memory = num_parameters * bytes_per_param / (1024**3)
 
     # Activation memory (rough estimate)
     # Assuming transformer with hidden_size proportional to sqrt(num_parameters)
     hidden_size = int((num_parameters / 1000000) ** 0.5 * 1000)  # Rough estimate
-    activation_memory = batch_size * sequence_length * hidden_size * 4 / (1024 ** 3)
+    activation_memory = batch_size * sequence_length * hidden_size * 4 / (1024**3)
 
     # Gradient memory (for training)
     gradient_memory = model_memory if quantization is None else 0
@@ -300,15 +304,18 @@ def estimate_model_memory(
         "gradient_memory_gb": gradient_memory,
         "optimizer_memory_gb": optimizer_memory,
         "total_inference_gb": model_memory + activation_memory,
-        "total_training_gb": model_memory + activation_memory + gradient_memory + optimizer_memory
+        "total_training_gb": model_memory
+        + activation_memory
+        + gradient_memory
+        + optimizer_memory,
     }
 
 
 def optimize_memory_usage(
-        model: torch.nn.Module,
-        enable_gradient_checkpointing: bool = True,
-        enable_mixed_precision: bool = True,
-        clear_cache_frequency: int = 100
+    model: torch.nn.Module,
+    enable_gradient_checkpointing: bool = True,
+    enable_mixed_precision: bool = True,
+    clear_cache_frequency: int = 100,
 ):
     """
     Apply memory optimization techniques to a model.
@@ -322,7 +329,9 @@ def optimize_memory_usage(
     optimizations_applied = []
 
     # Gradient checkpointing
-    if enable_gradient_checkpointing and hasattr(model, 'gradient_checkpointing_enable'):
+    if enable_gradient_checkpointing and hasattr(
+        model, "gradient_checkpointing_enable"
+    ):
         model.gradient_checkpointing_enable()
         optimizations_applied.append("gradient_checkpointing")
 
@@ -358,11 +367,7 @@ class MemoryProfiler:
         """
         current_usage = get_memory_usage()
 
-        profile_data = {
-            "name": name,
-            "timestamp": time.time(),
-            "usage": current_usage
-        }
+        profile_data = {"name": name, "timestamp": time.time(), "usage": current_usage}
 
         # Calculate delta from baseline
         if self.baseline:
@@ -385,7 +390,7 @@ class MemoryProfiler:
             "num_profiles": len(self.profiles),
             "baseline": self.baseline,
             "profiles": self.profiles,
-            "peak_usage": {}
+            "peak_usage": {},
         }
 
         # Find peak usage across all profiles
@@ -424,8 +429,7 @@ class MemoryProfiler:
 
 
 def check_memory_requirements(
-        required_memory_gb: float,
-        safety_margin: float = 0.1
+    required_memory_gb: float, safety_margin: float = 0.1
 ) -> bool:
     """
     Check if system has enough memory for operation.

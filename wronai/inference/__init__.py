@@ -11,12 +11,12 @@ from .api import create_api_server, APIConfig
 
 
 def generate_text(
-        model,
-        prompt: str,
-        max_length: int = 256,
-        temperature: float = 0.7,
-        top_p: float = 0.9,
-        **kwargs
+    model,
+    prompt: str,
+    max_length: int = 256,
+    temperature: float = 0.7,
+    top_p: float = 0.9,
+    **kwargs,
 ):
     """
     High-level text generation function.
@@ -38,7 +38,7 @@ def generate_text(
         max_length=max_length,
         temperature=temperature,
         top_p=top_p,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -51,5 +51,5 @@ __all__ = [
     "ConversationManager",
     "create_api_server",
     "APIConfig",
-    "generate_text"
+    "generate_text",
 ]

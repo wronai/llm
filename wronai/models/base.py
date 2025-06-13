@@ -13,12 +13,13 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     PretrainedConfig,
-    PreTrainedModel
+    PreTrainedModel,
 )
 
 from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
+
 
 @dataclass
 class ModelConfig:
@@ -58,18 +59,29 @@ class ModelConfig:
         """Post-initialization validation."""
         if self.polish_tokens is None:
             self.polish_tokens = [
-                "<polish>", "</polish>",
-                "<formal>", "</formal>",
-                "<informal>", "</informal>",
-                "<question>", "</question>",
-                "<answer>", "</answer>"
+                "<polish>",
+                "</polish>",
+                "<formal>",
+                "</formal>",
+                "<informal>",
+                "</informal>",
+                "<question>",
+                "</question>",
+                "<answer>",
+                "</answer>",
             ]
 
         if self.lora_target_modules is None:
             self.lora_target_modules = [
-                "q_proj", "v_proj", "k_proj", "o_proj",
-                "gate_proj", "up_proj", "down_proj"
+                "q_proj",
+                "v_proj",
+                "k_proj",
+                "o_proj",
+                "gate_proj",
+                "up_proj",
+                "down_proj",
             ]
+
 
 class WronAIModel(nn.Module, ABC):
     """
@@ -89,10 +101,7 @@ class WronAIModel(nn.Module, ABC):
 
     @classmethod
     def from_pretrained(
-        cls,
-        model_name: str,
-        config: Optional[ModelConfig] = None,
-        **kwargs
+        cls, model_name: str, config: Optional[ModelConfig] = None, **kwargs
     ):
         """Load model from pretrained weights."""
         if config is None:
@@ -126,22 +135,23 @@ class WronAIModel(nn.Module, ABC):
             self.config.model_name,
             torch_dtype=getattr(torch, self.config.torch_dtype),
             device_map=self.config.device_map,
-            trust_remote_code=self.config.trust_remote_code
+            trust_remote_code=self.config.trust_remote_code,
         )
 
         # Enable gradient checkpointing if requested
         if self.config.gradient_checkpointing:
             self.model.gradient_checkpointing_enable()
 
-        logger.info(f"Model loaded successfully. Parameters: {self.get_parameter_count():,}")
+        logger.info(
+            f"Model loaded successfully. Parameters: {self.get_parameter_count():,}"
+        )
 
     def load_tokenizer(self):
         """Load and configure tokenizer."""
         logger.info(f"Loading tokenizer: {self.config.model_name}")
 
         self.tokenizer = AutoTokenizer.from_pretrained(
-            self.config.model_name,
-            trust_remote_code=self.config.trust_remote_code
+            self.config.model_name, trust_remote_code=self.config.trust_remote_code
         )
 
         # Add Polish-specific tokens
@@ -196,7 +206,7 @@ class WronAIModel(nn.Module, ABC):
         """Save model and tokenizer."""
         logger.info(f"Saving model to: {save_directory}")
 
-        if hasattr(self.model, 'save_pretrained'):
+        if hasattr(self.model, "save_pretrained"):
             self.model.save_pretrained(save_directory)
 
         if self.tokenizer:
@@ -205,8 +215,9 @@ class WronAIModel(nn.Module, ABC):
         # Save config
         import json
         import os
+
         config_path = os.path.join(save_directory, "wronai_config.json")
-        with open(config_path, 'w') as f:
+        with open(config_path, "w") as f:
             json.dump(self.config.__dict__, f, indent=2)
 
         logger.info("Model saved successfully")
@@ -232,9 +243,9 @@ class WronAIModel(nn.Module, ABC):
     @property
     def device(self):
         """Get model device."""
-        if self.model and hasattr(self.model, 'device'):
+        if self.model and hasattr(self.model, "device"):
             return self.model.device
-        return torch.device('cpu')
+        return torch.device("cpu")
 
     def get_memory_usage(self) -> Dict[str, float]:
         """Get memory usage information."""
@@ -248,7 +259,7 @@ class WronAIModel(nn.Module, ABC):
         return {
             "gpu_memory_used": memory_used,
             "gpu_memory_total": memory_total,
-            "gpu_memory_percent": 100 * memory_used / memory_total
+            "gpu_memory_percent": 100 * memory_used / memory_total,
         }
 
     @abstractmethod
