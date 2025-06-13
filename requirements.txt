@@ -1,0 +1,52 @@
+# Core ML libraries
+torch>=2.0.0
+transformers>=4.35.0
+accelerate>=0.24.0
+peft>=0.6.0
+datasets>=2.14.0
+evaluate>=0.4.0
+
+# Quantization and optimization
+bitsandbytes>=0.41.0
+scipy>=1.10.0
+safetensors>=0.4.0
+
+# Data processing and utilities
+pandas>=2.0.0
+numpy>=1.24.0
+tqdm>=4.65.0
+wandb>=0.15.0
+tensorboard>=2.13.0
+
+# Text processing for Polish
+tokenizers>=0.14.0
+sentencepiece>=0.1.99
+regex>=2023.6.3
+
+# Polish language resources
+spacy>=3.6.0
+pl_core_news_sm @ https://github.com/explosion/spacy-models/releases/download/pl_core_news_sm-3.6.0/pl_core_news_sm-3.6.0-py3-none-any.whl
+
+# Data collection and preprocessing
+beautifulsoup4>=4.12.0
+requests>=2.31.0
+aiohttp>=3.8.0
+scrapy>=2.10.0
+
+# Configuration and logging
+pyyaml>=6.0
+omegaconf>=2.3.0
+loguru>=0.7.0
+rich>=13.0.0
+
+# Testing and quality
+pytest>=7.4.0
+black>=23.7.0
+flake8>=6.0.0
+mypy>=1.5.0
+pre-commit>=3.4.0
+
+# Optional: for advanced features
+# flash-attn>=2.3.0  # Requires specific CUDA setup
+# deepspeed>=0.10.0  # For multi-GPU training
+# ray>=2.7.0         # For distributed computing
