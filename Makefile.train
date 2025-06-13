@@ -1,0 +1,153 @@
+# WronAI Training Makefile
+# Dedicated Makefile for model training processes
+
+# Default shell
+SHELL := /bin/bash
+
+# Python interpreter
+PYTHON := python
+
+# Directories
+SCRIPTS_DIR := scripts
+CONFIGS_DIR := configs
+DATA_DIR := data
+CHECKPOINTS_DIR := checkpoints
+LOGS_DIR := logs
+
+# Create directories if they don't exist
+$(CHECKPOINTS_DIR):
+	mkdir -p $(CHECKPOINTS_DIR)
+
+$(LOGS_DIR):
+	mkdir -p $(LOGS_DIR)
+
+$(DATA_DIR):
+	mkdir -p $(DATA_DIR)
+
+# Training configurations
+DEFAULT_CONFIG := $(CONFIGS_DIR)/default.yaml
+QUICK_TEST_CONFIG := $(CONFIGS_DIR)/quick_test.yaml
+
+# Training scripts
+TRAIN_SCRIPT := $(SCRIPTS_DIR)/train.py
+PREPARE_DATA_SCRIPT := $(SCRIPTS_DIR)/prepare_data.py
+
+# Default target
+.PHONY: help
+help:
+	@echo "WronAI Training Makefile"
+	@echo "========================="
+	@echo "Available targets:"
+	@echo "  help              - Show this help message"
+	@echo "  prepare-data      - Prepare training data"
+	@echo "  train             - Train model with default configuration"
+	@echo "  train-quick       - Train model with quick test configuration"
+	@echo "  train-custom      - Train model with custom configuration (CONFIG=path/to/config.yaml)"
+	@echo "  tensorboard       - Start TensorBoard server"
+	@echo "  clean-checkpoints - Remove all checkpoints"
+	@echo "  clean-logs        - Remove all logs"
+	@echo "  clean-all         - Remove all generated files (checkpoints, logs)"
+	@echo "  setup-wandb       - Setup Weights & Biases for experiment tracking"
+	@echo "  setup-wandb-local - Setup local Weights & Biases server"
+
+# Data preparation
+.PHONY: prepare-data
+prepare-data: $(DATA_DIR)
+	$(PYTHON) $(PREPARE_DATA_SCRIPT)
+
+# Training targets
+.PHONY: train
+train: $(CHECKPOINTS_DIR) $(LOGS_DIR)
+	$(PYTHON) $(TRAIN_SCRIPT) --config $(DEFAULT_CONFIG)
+
+.PHONY: train-quick
+train-quick: $(CHECKPOINTS_DIR) $(LOGS_DIR)
+	$(PYTHON) $(TRAIN_SCRIPT) --config $(QUICK_TEST_CONFIG)
+
+.PHONY: train-custom
+train-custom: $(CHECKPOINTS_DIR) $(LOGS_DIR)
+	@if [ -z "$(CONFIG)" ]; then \
+		echo "Error: CONFIG variable is not set. Usage: make train-custom CONFIG=path/to/config.yaml"; \
+		exit 1; \
+	fi
+	$(PYTHON) $(TRAIN_SCRIPT) --config $(CONFIG)
+
+# TensorBoard
+.PHONY: tensorboard
+tensorboard:
+	tensorboard --logdir=$(CHECKPOINTS_DIR)
+
+# Weights & Biases setup
+.PHONY: setup-wandb
+setup-wandb:
+	@echo "Setting up Weights & Biases..."
+	pip install wandb
+	wandb login
+
+.PHONY: setup-wandb-local
+setup-wandb-local:
+	@echo "Setting up local Weights & Biases server..."
+	@echo "This requires Docker and Docker Compose to be installed."
+	@mkdir -p wandb-local
+	@cat > wandb-local/docker-compose.yml << 'EOF'
+version: '3'
+services:
+  wandb:
+    image: wandb/local:latest
+    container_name: wandb-local
+    ports:
+      - "8080:8080"
+    environment:
+      - WANDB_USERNAME=admin
+      - WANDB_PASSWORD=admin
+    volumes:
+      - ./data:/vol
+EOF
+	@echo "Local W&B server configuration created in wandb-local/docker-compose.yml"
+	@echo "To start the server, run: cd wandb-local && docker-compose up -d"
+	@echo "Then configure your training to use the local server with:"
+	@echo "export WANDB_BASE_URL=http://localhost:8080"
+	@echo "export WANDB_API_KEY=admin"
+
+# Cleaning targets
+.PHONY: clean-checkpoints
+clean-checkpoints:
+	rm -rf $(CHECKPOINTS_DIR)/*
+
+.PHONY: clean-logs
+clean-logs:
+	rm -rf $(LOGS_DIR)/*
+
+.PHONY: clean-all
+clean-all: clean-checkpoints clean-logs
+	@echo "All generated files removed."
+
+# Hardware optimization targets
+.PHONY: check-gpu
+check-gpu:
+	@echo "Checking GPU availability..."
+	@python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}'); \
+		if torch.cuda.is_available(): \
+			print(f'GPU count: {torch.cuda.device_count()}'); \
+			for i in range(torch.cuda.device_count()): \
+				print(f'GPU {i}: {torch.cuda.get_device_name(i)}'); \
+		else: \
+			print('No GPU available, training will be slow on CPU only.')"
+
+# Training with specific hardware configurations
+.PHONY: train-cpu-only
+train-cpu-only: $(CHECKPOINTS_DIR) $(LOGS_DIR)
+	CUDA_VISIBLE_DEVICES="" $(PYTHON) $(TRAIN_SCRIPT) --config $(DEFAULT_CONFIG)
+
+.PHONY: train-specific-gpu
+train-specific-gpu: $(CHECKPOINTS_DIR) $(LOGS_DIR)
+	@if [ -z "$(GPU)" ]; then \
+		echo "Error: GPU variable is not set. Usage: make train-specific-gpu GPU=0"; \
+		exit 1; \
+	fi
+	CUDA_VISIBLE_DEVICES=$(GPU) $(PYTHON) $(TRAIN_SCRIPT) --config $(DEFAULT_CONFIG)
+
+# Multi-GPU training (if supported by the script)
+.PHONY: train-multi-gpu
+train-multi-gpu: $(CHECKPOINTS_DIR) $(LOGS_DIR)
+	$(PYTHON) $(TRAIN_SCRIPT) --config $(DEFAULT_CONFIG) --multi_gpu
