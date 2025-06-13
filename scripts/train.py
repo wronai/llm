@@ -36,10 +36,27 @@ class WronAITrainer:
         self.config = self.load_config(config_path)
         self.setup_logging()
 
+    def convert_numeric_strings(self, obj):
+        """Convert string representations of numbers to their appropriate types."""
+        if isinstance(obj, dict):
+            return {k: self.convert_numeric_strings(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self.convert_numeric_strings(item) for item in obj]
+        elif isinstance(obj, str):
+            # Try to convert to int or float if possible
+            try:
+                if '.' in obj or 'e' in obj.lower():
+                    return float(obj)
+                return int(obj)
+            except (ValueError, TypeError):
+                return obj
+        return obj
+
     def load_config(self, config_path: str) -> dict:
         """Load training configuration from YAML file."""
         with open(config_path, "r", encoding="utf-8") as f:
-            return yaml.safe_load(f)
+            config = yaml.safe_load(f)
+        return self.convert_numeric_strings(config)
 
     def setup_logging(self):
         """Setup logging and monitoring."""
@@ -225,7 +242,7 @@ class WronAITrainer:
             logging_steps=self.config["training"]["logging_steps"],
             save_steps=self.config["training"]["save_steps"],
             eval_steps=self.config["training"]["eval_steps"],
-            evaluation_strategy=self.config["training"]["evaluation_strategy"],
+            eval_strategy=self.config["training"]["evaluation_strategy"],
             save_strategy=self.config["training"]["save_strategy"],
             load_best_model_at_end=self.config["training"]["load_best_model_at_end"],
             metric_for_best_model=self.config["training"]["metric_for_best_model"],

@@ -170,7 +170,7 @@ Ten projekt jest dostępny na licencji Apache 2.0. Zobacz [LICENSE](LICENSE) po 
 
 ## 🙏 Podziękowania
 
-- **PLLuM Team** za inspirację i wzorce
+- **Bielik Team** za inspirację i wsparcie 
 - **Mistral AI** za model bazowy
 - **Hugging Face** za infrastrukturę
 - **Polish NLP Community** za wsparcie
