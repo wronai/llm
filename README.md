@@ -178,14 +178,14 @@ Ten projekt jest dostępny na licencji Apache 2.0. Zobacz [LICENSE](LICENSE) po 
 
 ## 📞 Kontakt
 
-- **Issues**: [GitHub Issues](https://github.com/twoje-repo/WronAI/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/twoje-repo/WronAI/discussions)
+- **Issues**: [GitHub Issues](https://github.com/wronai/llm/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/wronai/llm/discussions)
 - **Email**: wronai@softreck.dev
 - **Discord**: [WronAI Community](https://discord.gg/wronai)
 
 ## 🌟 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=twoje-repo/WronAI&type=Date)](https://star-history.com/#twoje-repo/WronAI&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=wronai/llm&type=Date)](https://star-history.com/#wronai/llm&Date)
 
 ---
 

@@ -5,12 +5,12 @@ Dziękujemy za zainteresowanie współpracą z projektem WronAI! Twój wkład po
 ## 🎯 Jak możesz pomóc
 
 ### 🐛 Zgłaszanie błędów
-- Sprawdź czy błąd nie został już zgłoszony w [Issues](https://github.com/twoje-repo/WronAI/issues)
+- Sprawdź czy błąd nie został już zgłoszony w [Issues](https://github.com/wronai/llm/issues)
 - Użyj template dla bug reportów
 - Dołącz informacje o systemie i reprodukcję błędu
 
 ### 💡 Propozycje funkcji
-- Otwórz [Feature Request](https://github.com/twoje-repo/WronAI/issues/new)
+- Otwórz [Feature Request](https://github.com/wronai/llm/issues/new)
 - Opisz przypadek użycia i korzyści
 - Zaproponuj implementację jeśli możliwe
 

@@ -22,11 +22,11 @@ setup(
     description="Polski model językowy - demokratyzacja AI dla języka polskiego",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/twoje-repo/WronAI",
+    url="https://github.com/wronai/llm",
     project_urls={
-        "Bug Tracker": "https://github.com/twoje-repo/WronAI/issues",
-        "Documentation": "https://github.com/twoje-repo/WronAI/docs",
-        "Source Code": "https://github.com/twoje-repo/WronAI",
+        "Bug Tracker": "https://github.com/wronai/llm/issues",
+        "Documentation": "https://github.com/wronai/llm/docs",
+        "Source Code": "https://github.com/wronai/llm",
     },
     packages=find_packages(exclude=["tests*", "docs*"]),
     classifiers=[

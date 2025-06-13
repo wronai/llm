@@ -98,12 +98,12 @@ polish = [
 all = ["wronai[dev,docs,inference,advanced,polish]"]
 
 [project.urls]
-Homepage = "https://github.com/twoje-repo/WronAI"
+Homepage = "https://github.com/wronai/llm"
 Documentation = "https://wronai.readthedocs.io"
-Repository = "https://github.com/twoje-repo/WronAI.git"
-"Bug Tracker" = "https://github.com/twoje-repo/WronAI/issues"
-"Feature Requests" = "https://github.com/twoje-repo/WronAI/discussions"
-Changelog = "https://github.com/twoje-repo/WronAI/blob/main/CHANGELOG.md"
+Repository = "https://github.com/wronai/llm.git"
+"Bug Tracker" = "https://github.com/wronai/llm/issues"
+"Feature Requests" = "https://github.com/wronai/llm/discussions"
+Changelog = "https://github.com/wronai/llm/blob/main/CHANGELOG.md"
 
 [project.scripts]
 wronai-train = "scripts.train:main"

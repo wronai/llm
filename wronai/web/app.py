@@ -13,10 +13,10 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 
-from ..models import load_model
-from ..inference import InferenceEngine, InferenceConfig
-from ..utils.logging import get_logger, setup_logging
-from ..utils.memory import get_memory_usage, format_memory_usage
+from wronai.models import load_model
+from wronai.inference import InferenceEngine, InferenceConfig
+from wronai.utils.logging import get_logger, setup_logging
+from wronai.utils.memory import get_memory_usage, format_memory_usage
 
 # Setup logging
 setup_logging(level="INFO")
@@ -551,7 +551,7 @@ def about_interface():
     
     #### 🤝 Community:
     - **Licencja:** Apache 2.0 (pełna otwartość)
-    - **GitHub:** [WronAI Repository](https://github.com/twoje-repo/WronAI)
+    - **GitHub:** [WronAI Repository](https://github.com/wronai/llm)
     - **Discord:** [WronAI Community](https://discord.gg/wronai)
     - **Contributions:** Zapraszamy do współpracy!
     """)

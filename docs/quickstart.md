@@ -21,7 +21,7 @@ Witaj w WronAI! Ten przewodnik pomoże Ci szybko rozpocząć pracę z polskim mo
 ### 1. Klonowanie repozytorium
 
 ```bash
-git clone https://github.com/twoje-repo/WronAI.git
+git clone https://github.com/wronai/llm.git
 cd WronAI
 ```
 
@@ -401,7 +401,7 @@ if torch.cuda.is_available():
 
 1. **Eksploruj przykłady**: `notebooks/` zawiera Jupyter notebooks z zaawansowanymi przykładami
 2. **Przeczytaj dokumentację**: Szczegółowe informacje w `docs/`
-3. **Dołącz do community**: [Discord](https://discord.gg/wronai) i [GitHub Discussions](https://github.com/twoje-repo/WronAI/discussions)
+3. **Dołącz do community**: [Discord](https://discord.gg/wronai) i [GitHub Discussions](https://github.com/wronai/llm/discussions)
 4. **Contribute**: Zobacz `CONTRIBUTING.md` jak pomóc w rozwoju
 
 ## 🎯 Przykładowe projekty
@@ -417,7 +417,7 @@ if torch.cuda.is_available():
 **Potrzebujesz pomocy?** 
 - 📖 [Pełna dokumentacja](docs/)
 - 💬 [Discord Community](https://discord.gg/wronai) 
-- 🐛 [GitHub Issues](https://github.com/twoje-repo/WronAI/issues)
+- 🐛 [GitHub Issues](https://github.com/wronai/llm/issues)
 - 📧 [Email](mailto:wronai@example.com)
 
 **Happy coding z WronAI!** 🐦‍⬛🇵🇱
