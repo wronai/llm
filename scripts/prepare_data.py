@@ -9,15 +9,15 @@ import json
 import logging
 import os
 import re
-import requests
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from urllib.parse import urljoin
 
 import pandas as pd
+import requests
+import spacy
 from datasets import Dataset, DatasetDict, load_dataset
 from tqdm import tqdm
-import spacy
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

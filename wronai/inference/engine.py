@@ -4,7 +4,7 @@ Inference engine for WronAI models.
 
 import time
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List, Optional, Union
 
 import torch
 from transformers import GenerationConfig

@@ -3,12 +3,12 @@ Memory management utilities for WronAI.
 """
 
 import gc
-import psutil
 import threading
 import time
 from contextlib import contextmanager
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
+import psutil
 import torch
 
 from .logging import get_logger

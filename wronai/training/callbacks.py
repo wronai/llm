@@ -3,13 +3,13 @@ Training callbacks for WronAI models.
 """
 
 import time
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 import torch
 from transformers import (
     TrainerCallback,
-    TrainerState,
     TrainerControl,
+    TrainerState,
     TrainingArguments,
 )
 

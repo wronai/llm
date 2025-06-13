@@ -4,26 +4,26 @@ WronAI Training Script
 Polish Language Model Training with QLoRA optimization
 """
 
-import os
-import sys
 import argparse
 import logging
+import os
+import sys
 from pathlib import Path
 from typing import Optional
 
 import torch
+import wandb
 import yaml
+from datasets import load_dataset
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from transformers import (
-    AutoTokenizer,
     AutoModelForCausalLM,
-    TrainingArguments,
-    Trainer,
+    AutoTokenizer,
     BitsAndBytesConfig,
     DataCollatorForLanguageModeling,
+    Trainer,
+    TrainingArguments,
 )
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-from datasets import load_dataset
-import wandb
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

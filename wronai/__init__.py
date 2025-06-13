@@ -5,39 +5,16 @@ Demokratyzacja sztucznej inteligencji dla języka polskiego.
 Efektywny trening i inferencja na sprzęcie konsumenckim.
 """
 
-from .version import __version__
+from .data import PolishDataset, PolishTokenizer, prepare_polish_data
+from .inference import ChatBot, InferenceEngine, generate_text
 
 # Core components
-from .models import (
-    WronAIModel,
-    load_model,
-    load_quantized_model
-)
-
-from .training import (
-    WronAITrainer,
-    TrainingConfig,
-    train_model
-)
-
-from .inference import (
-    InferenceEngine,
-    ChatBot,
-    generate_text
-)
-
-from .data import (
-    PolishDataset,
-    PolishTokenizer,
-    prepare_polish_data
-)
+from .models import WronAIModel, load_model, load_quantized_model
+from .training import TrainingConfig, WronAITrainer, train_model
 
 # Utilities
-from .utils import (
-    setup_logging,
-    get_device_info,
-    memory_monitor
-)
+from .utils import get_device_info, memory_monitor, setup_logging
+from .version import __version__
 
 __all__ = [
     "__version__",

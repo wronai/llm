@@ -2,17 +2,16 @@
 Polish language specific data processing utilities.
 """
 
+from .morphology import (
+    PolishMorphologyAnalyzer,
+    analyze_polish_sentence,
+    get_word_forms,
+)
 from .normalization import (
+    fix_spacing,
     normalize_polish_text,
     remove_diacritics,
     standardize_quotes,
-    fix_spacing,
-)
-
-from .morphology import (
-    PolishMorphologyAnalyzer,
-    get_word_forms,
-    analyze_polish_sentence,
 )
 
 

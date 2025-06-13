@@ -11,13 +11,13 @@ from pathlib import Path
 from typing import List, Optional
 
 import torch
-from transformers import (
-    AutoTokenizer,
-    AutoModelForCausalLM,
-    BitsAndBytesConfig,
-    pipeline
-)
 from peft import PeftModel
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+    pipeline,
+)
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

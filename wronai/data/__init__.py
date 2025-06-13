@@ -4,10 +4,10 @@ WronAI Data Module
 Data processing and utilities for Polish language datasets.
 """
 
-from .dataset import PolishDataset, InstructionDataset, ConversationDataset
-from .tokenizer import PolishTokenizer, setup_polish_tokenizer
+from .collectors import InstructionDataCollector, PolishDataCollector
+from .dataset import ConversationDataset, InstructionDataset, PolishDataset
 from .preprocessing import PolishTextPreprocessor, clean_polish_text
-from .collectors import PolishDataCollector, InstructionDataCollector
+from .tokenizer import PolishTokenizer, setup_polish_tokenizer
 
 
 def prepare_polish_data(

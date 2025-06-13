@@ -3,12 +3,13 @@ Mistral model implementation for WronAI.
 """
 
 import re
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 from transformers import MistralForCausalLM
-from .base import WronAIModel, ModelConfig
+
+from ..data.polish import POLISH_DIACRITICS_MAP, normalize_polish_text
 from ..utils.logging import get_logger
-from ..data.polish import normalize_polish_text, POLISH_DIACRITICS_MAP
+from .base import ModelConfig, WronAIModel
 
 logger = get_logger(__name__)
 
@@ -31,8 +32,8 @@ class WronAIMistral(WronAIModel):
         # Configure quantization if enabled
         quantization_config = None
         if self.config.quantization_enabled:
-            from transformers import BitsAndBytesConfig
             import torch
+            from transformers import BitsAndBytesConfig
 
             quantization_config = BitsAndBytesConfig(
                 load_in_4bit=True,

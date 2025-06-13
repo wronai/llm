@@ -5,16 +5,17 @@ Dataset classes for WronAI Polish language data.
 import json
 import random
 from pathlib import Path
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List, Optional, Union
 
 import torch
+from datasets import Dataset as HFDataset
+from datasets import load_dataset
 from torch.utils.data import Dataset
-from datasets import Dataset as HFDataset, load_dataset
 from transformers import AutoTokenizer
 
 from ..utils.logging import get_logger
+from .polish import load_polish_stopwords, normalize_polish_text
 from .preprocessing import PolishTextPreprocessor
-from .polish import normalize_polish_text, load_polish_stopwords
 
 logger = get_logger(__name__)
 

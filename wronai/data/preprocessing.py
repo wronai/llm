@@ -7,7 +7,7 @@ import unicodedata
 from typing import List, Optional, Set
 
 from ..utils.logging import get_logger
-from .polish import normalize_polish_text, POLISH_DIACRITICS_MAP, load_polish_stopwords
+from .polish import POLISH_DIACRITICS_MAP, load_polish_stopwords, normalize_polish_text
 
 logger = get_logger(__name__)
 
