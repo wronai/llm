@@ -1,0 +1,309 @@
+WronAI/
+├── .github/
+│   ├── workflows/
+│   │   ├── ci.yml
+│   │   ├── docker-publish.yml
+│   │   └── release.yml
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── bug_report.md
+│   │   ├── feature_request.md
+│   │   └── question.md
+│   ├── PULL_REQUEST_TEMPLATE.md
+│   └── FUNDING.yml
+├── .gitignore
+├── .pre-commit-config.yaml
+├── .dockerignore
+├── README.md
+├── LICENSE
+├── CONTRIBUTING.md
+├── CHANGELOG.md
+├── CODE_OF_CONDUCT.md
+├── SECURITY.md
+├── requirements.txt
+├── requirements-dev.txt
+├── setup.py
+├── pyproject.toml
+├── Makefile
+├── Dockerfile
+├── docker-compose.yml
+├── docker-compose.prod.yml
+├── wronai/
+│   ├── __init__.py
+│   ├── version.py
+│   ├── config/
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   ├── training.py
+│   │   └── inference.py
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   ├── mistral.py
+│   │   ├── llama.py
+│   │   ├── quantization.py
+│   │   └── lora.py
+│   ├── training/
+│   │   ├── __init__.py
+│   │   ├── trainer.py
+│   │   ├── callbacks.py
+│   │   ├── optimizer.py
+│   │   ├── scheduler.py
+│   │   └── utils.py
+│   ├── data/
+│   │   ├── __init__.py
+│   │   ├── dataset.py
+│   │   ├── tokenizer.py
+│   │   ├── preprocessing.py
+│   │   ├── collectors.py
+│   │   └── polish/
+│   │       ├── __init__.py
+│   │       ├── stopwords.txt
+│   │       ├── morphology.py
+│   │       └── normalization.py
+│   ├── inference/
+│   │   ├── __init__.py
+│   │   ├── engine.py
+│   │   ├── pipeline.py
+│   │   ├── chat.py
+│   │   └── api.py
+│   ├── evaluation/
+│   │   ├── __init__.py
+│   │   ├── metrics.py
+│   │   ├── benchmarks.py
+│   │   ├── polish_eval.py
+│   │   └── reports.py
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── logging.py
+│   │   ├── monitoring.py
+│   │   ├── memory.py
+│   │   ├── device.py
+│   │   └── helpers.py
+│   └── web/
+│       ├── __init__.py
+│       ├── app.py
+│       ├── api/
+│       │   ├── __init__.py
+│       │   ├── routes.py
+│       │   └── models.py
+│       └── templates/
+│           ├── index.html
+│           ├── chat.html
+│           └── base.html
+├── scripts/
+│   ├── __init__.py
+│   ├── train.py
+│   ├── inference.py
+│   ├── prepare_data.py
+│   ├── evaluate.py
+│   ├── benchmark.py
+│   ├── serve.py
+│   ├── convert_model.py
+│   ├── merge_lora.py
+│   └── utils/
+│       ├── __init__.py
+│       ├── download.py
+│       ├── cleanup.py
+│       └── monitoring.py
+├── configs/
+│   ├── default.yaml
+│   ├── quick_test.yaml
+│   ├── production.yaml
+│   ├── multi_gpu.yaml
+│   ├── memory_efficient.yaml
+│   ├── inference.yaml
+│   └── evaluation.yaml
+├── data/
+│   ├── raw/
+│   │   ├── .gitkeep
+│   │   └── README.md
+│   ├── processed/
+│   │   ├── .gitkeep
+│   │   └── README.md
+│   ├── external/
+│   │   ├── .gitkeep
+│   │   └── sources.md
+│   └── examples/
+│       ├── polish_instructions.json
+│       ├── sample_conversations.json
+│       └── test_prompts.txt
+├── checkpoints/
+│   ├── .gitkeep
+│   ├── README.md
+│   └── wronai-7b/
+│       ├── .gitkeep
+│       └── README.md
+├── logs/
+│   ├── .gitkeep
+│   ├── training/
+│   │   └── .gitkeep
+│   ├── inference/
+│   │   └── .gitkeep
+│   └── evaluation/
+│       └── .gitkeep
+├── notebooks/
+│   ├── 01_data_exploration.ipynb
+│   ├── 02_model_training.ipynb
+│   ├── 03_evaluation.ipynb
+│   ├── 04_inference_examples.ipynb
+│   ├── 05_polish_analysis.ipynb
+│   └── utils/
+│       ├── __init__.py
+│       └── visualization.py
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── unit/
+│   │   ├── __init__.py
+│   │   ├── test_models.py
+│   │   ├── test_data.py
+│   │   ├── test_training.py
+│   │   ├── test_inference.py
+│   │   ├── test_utils.py
+│   │   └── test_polish.py
+│   ├── integration/
+│   │   ├── __init__.py
+│   │   ├── test_training_pipeline.py
+│   │   ├── test_inference_pipeline.py
+│   │   ├── test_data_pipeline.py
+│   │   └── test_api.py
+│   ├── e2e/
+│   │   ├── __init__.py
+│   │   ├── test_full_workflow.py
+│   │   └── test_docker.py
+│   └── fixtures/
+│       ├── __init__.py
+│       ├── sample_data/
+│       │   ├── small_dataset.json
+│       │   ├── test_prompts.txt
+│       │   └── polish_texts.txt
+│       └── models/
+│           ├── tiny_model/
+│           │   └── .gitkeep
+│           └── mock_tokenizer.json
+├── docs/
+│   ├── Makefile
+│   ├── conf.py
+│   ├── index.rst
+│   ├── installation.md
+│   ├── quickstart.md
+│   ├── training.md
+│   ├── inference.md
+│   ├── api.md
+│   ├── benchmarks.md
+│   ├── faq.md
+│   ├── troubleshooting.md
+│   ├── contributing.md
+│   ├── changelog.md
+│   ├── _static/
+│   │   ├── logo.png
+│   │   ├── architecture.png
+│   │   └── custom.css
+│   ├── _templates/
+│   │   └── custom.html
+│   └── tutorials/
+│       ├── 01_basic_usage.md
+│       ├── 02_custom_training.md
+│       ├── 03_deployment.md
+│       └── 04_advanced_features.md
+├── tools/
+│   ├── __init__.py
+│   ├── data_validators.py
+│   ├── model_analyzer.py
+│   ├── performance_profiler.py
+│   ├── memory_monitor.py
+│   ├── gpu_utils.py
+│   └── export/
+│       ├── __init__.py
+│       ├── onnx_converter.py
+│       ├── tensorrt_converter.py
+│       └── mobile_converter.py
+├── deployment/
+│   ├── kubernetes/
+│   │   ├── namespace.yaml
+│   │   ├── deployment.yaml
+│   │   ├── service.yaml
+│   │   ├── ingress.yaml
+│   │   └── configmap.yaml
+│   ├── helm/
+│   │   ├── Chart.yaml
+│   │   ├── values.yaml
+│   │   └── templates/
+│   │       ├── deployment.yaml
+│   │       ├── service.yaml
+│   │       └── configmap.yaml
+│   ├── terraform/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   ├── outputs.tf
+│   │   └── modules/
+│   │       ├── gpu_instance/
+│   │       │   ├── main.tf
+│   │       │   ├── variables.tf
+│   │       │   └── outputs.tf
+│   │       └── storage/
+│   │           ├── main.tf
+│   │           ├── variables.tf
+│   │           └── outputs.tf
+│   └── scripts/
+│       ├── deploy.sh
+│       ├── backup.sh
+│       ├── monitoring.sh
+│       └── health_check.sh
+├── examples/
+│   ├── basic_usage/
+│   │   ├── train_simple.py
+│   │   ├── inference_simple.py
+│   │   └── README.md
+│   ├── advanced/
+│   │   ├── custom_dataset.py
+│   │   ├── multi_gpu_training.py
+│   │   ├── custom_model.py
+│   │   └── README.md
+│   ├── api_usage/
+│   │   ├── rest_client.py
+│   │   ├── websocket_client.py
+│   │   └── README.md
+│   └── polish_specific/
+│       ├── sentiment_analysis.py
+│       ├── text_generation.py
+│       ├── question_answering.py
+│       └── README.md
+├── monitoring/
+│   ├── prometheus/
+│   │   ├── config.yml
+│   │   └── rules.yml
+│   ├── grafana/
+│   │   ├── dashboards/
+│   │   │   ├── training.json
+│   │   │   ├── inference.json
+│   │   │   └── system.json
+│   │   └── provisioning/
+│   │       ├── datasources/
+│   │       │   └── prometheus.yml
+│   │       └── dashboards/
+│   │           └── dashboard.yml
+│   └── alertmanager/
+│       └── config.yml
+├── assets/
+│   ├── images/
+│   │   ├── logo.png
+│   │   ├── logo_small.png
+│   │   ├── architecture_diagram.png
+│   │   ├── training_flow.png
+│   │   └── benchmark_results.png
+│   ├── videos/
+│   │   ├── demo.mp4
+│   │   └── tutorial.mp4
+│   └── presentations/
+│       ├── wronai_overview.pdf
+│       └── technical_details.pdf
+├── .env.example
+├── .python-version
+├── poetry.lock
+├── mypy.ini
+├── pytest.ini
+├── .coverage
+├── .coveragerc
+├── tox.ini
+└── VERSION
