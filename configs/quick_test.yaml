@@ -1,0 +1,98 @@
+# WronAI Quick Test Configuration
+# Minimal setup for testing and development
+
+# Model Configuration
+model:
+  name: "microsoft/DialoGPT-small"  # Smaller model for testing
+  trust_remote_code: true
+  torch_dtype: "bfloat16"
+  device_map: "auto"
+
+# LoRA Configuration (smaller values for quick testing)
+lora:
+  r: 8
+  lora_alpha: 16
+  lora_dropout: 0.1
+  bias: "none"
+  task_type: "CAUSAL_LM"
+  target_modules:
+    - "c_attn"
+    - "c_proj"
+
+# Quantization Configuration
+quantization:
+  load_in_4bit: true
+  bnb_4bit_compute_dtype: "bfloat16"
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_use_double_quant: true
+
+# Training Configuration (minimal for quick testing)
+training:
+  output_dir: "./checkpoints/wronai-quick-test"
+  num_train_epochs: 1  # Just 1 epoch for testing
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 1
+  gradient_accumulation_steps: 4  # Smaller accumulation
+  warmup_ratio: 0.1
+  learning_rate: 5e-4  # Higher LR for quick convergence
+  fp16: false
+  bf16: true
+  logging_steps: 5  # Log more frequently
+  save_steps: 50
+  eval_steps: 50
+  evaluation_strategy: "steps"
+  save_strategy: "steps"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+  save_total_limit: 2
+  remove_unused_columns: false
+  dataloader_pin_memory: false
+  gradient_checkpointing: true
+  group_by_length: false  # Disable for speed
+  optim: "adamw_torch"  # Standard optimizer
+  lr_scheduler_type: "linear"
+  max_grad_norm: 1.0
+  weight_decay: 0.01
+  max_steps: 100  # Limit total steps for quick test
+
+# Data Configuration (minimal dataset)
+data:
+  dataset_name: "wronai/polish-instruct-mini"  # Small test dataset
+  train_split: "train"
+  eval_split: "validation"
+  max_seq_length: 512  # Shorter sequences for speed
+  preprocessing_num_workers: 2
+
+# Polish Language Specific (minimal)
+polish:
+  tokenizer_vocab_size: 16000  # Smaller vocab
+  add_polish_tokens: false  # Skip for quick test
+  polish_stopwords: false
+  morphological_analysis: false
+
+# Logging and Monitoring (minimal)
+logging:
+  wandb_project: "wronai-quick-test"
+  wandb_run_name: "quick-test-{timestamp}"
+  log_level: "INFO"
+  report_to: ["tensorboard"]  # Skip wandb for quick test
+
+# Hardware Optimization (conservative)
+hardware:
+  max_memory_mb: 4000  # Lower memory usage
+  cpu_offload: true
+  pin_memory: false
+  dataloader_num_workers: 1
+
+# Safety and Alignment (disabled for speed)
+safety:
+  content_filter: false
+  toxic_threshold: 0.9
+  bias_detection: false
+
+# Evaluation (minimal)
+evaluation:
+  metrics: ["perplexity"]  # Only basic metric
+  polish_specific_metrics: false
+  benchmark_datasets: []  # Skip benchmarks

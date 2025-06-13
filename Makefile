@@ -190,7 +190,7 @@ print(f'Model size: {total_params * 4 / 1024**3:.2f} GB (fp32)')
 # Download pre-trained models
 download-models:
 	mkdir -p models/pretrained
-	wget -O models/pretrained/wronai-7b.tar.gz "https://example.com/wronai-7b.tar.gz"
+	wget -O models/pretrained/wronai-7b.tar.gz "https://softreck.dev/wronai-7b.tar.gz"
 	tar -xzf models/pretrained/wronai-7b.tar.gz -C models/pretrained/
 
 # Health check

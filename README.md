@@ -166,7 +166,7 @@ Ten projekt jest dostępny na licencji Apache 2.0. Zobacz [LICENSE](LICENSE) po 
 
 - **Issues**: [GitHub Issues](https://github.com/twoje-repo/WronAI/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/twoje-repo/WronAI/discussions)
-- **Email**: wronai@example.com
+- **Email**: wronai@softreck.dev
 - **Discord**: [WronAI Community](https://discord.gg/wronai)
 
 ## 🌟 Star History

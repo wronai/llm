@@ -1,0 +1,187 @@
+# WronAI Production Configuration
+# Optimized for production deployment and high-quality results
+
+# Model Configuration
+model:
+  name: "mistralai/Mistral-7B-v0.1"
+  trust_remote_code: true
+  torch_dtype: "bfloat16"
+  device_map: "auto"
+
+# LoRA Configuration (optimized for quality)
+lora:
+  r: 32  # Higher rank for better capacity
+  lora_alpha: 64
+  lora_dropout: 0.05  # Lower dropout for stability
+  bias: "none"
+  task_type: "CAUSAL_LM"
+  target_modules:
+    - "q_proj"
+    - "v_proj"
+    - "k_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+
+# Quantization Configuration
+quantization:
+  load_in_4bit: true
+  bnb_4bit_compute_dtype: "bfloat16"
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_use_double_quant: true
+
+# Training Configuration (production quality)
+training:
+  output_dir: "./checkpoints/wronai-7b-production"
+  num_train_epochs: 5
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 1
+  gradient_accumulation_steps: 32  # Large effective batch size
+  warmup_ratio: 0.05
+  learning_rate: 1e-4  # Conservative learning rate
+  fp16: false
+  bf16: true
+  logging_steps: 25
+  save_steps: 1000
+  eval_steps: 1000
+  evaluation_strategy: "steps"
+  save_strategy: "steps"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+  save_total_limit: 5
+  remove_unused_columns: false
+  dataloader_pin_memory: false
+  gradient_checkpointing: true
+  group_by_length: true
+  optim: "paged_adamw_32bit"
+  lr_scheduler_type: "cosine"
+  max_grad_norm: 1.0
+  weight_decay: 0.01
+  seed: 42
+  data_seed: 42
+
+# Data Configuration (full dataset)
+data:
+  dataset_name: "wronai/polish-instruct-full"
+  train_split: "train"
+  eval_split: "validation"
+  max_seq_length: 2048
+  preprocessing_num_workers: 8
+
+# Polish Language Specific (full features)
+polish:
+  tokenizer_vocab_size: 32000
+  add_polish_tokens: true
+  polish_stopwords: true
+  morphological_analysis: true
+
+# Logging and Monitoring (comprehensive)
+logging:
+  wandb_project: "wronai-production"
+  wandb_run_name: "wronai-7b-prod-{timestamp}"
+  log_level: "INFO"
+  report_to: ["tensorboard", "wandb"]
+
+# Hardware Optimization (production)
+hardware:
+  max_memory_mb: 14000  # Use most available memory
+  cpu_offload: false  # Keep everything on GPU
+  pin_memory: true
+  dataloader_num_workers: 4
+
+# Safety and Alignment (enabled)
+safety:
+  content_filter: true
+  toxic_threshold: 0.7
+  bias_detection: true
+
+# Evaluation (comprehensive)
+evaluation:
+  metrics: ["perplexity", "bleu", "rouge", "bertscore"]
+  polish_specific_metrics: true
+  benchmark_datasets:
+    - "polish_qa"
+    - "polish_sentiment"
+    - "polish_ner"
+    - "polish_summarization"
+
+# Advanced Features
+advanced:
+  # Model ensemble for better quality
+  ensemble_models: []
+
+  # Advanced optimizations
+  torch_compile: false  # Enable if using PyTorch 2.0+
+  flash_attention: false  # Enable if flash-attn installed
+
+  # Early stopping
+  early_stopping_patience: 3
+  early_stopping_threshold: 0.001
+
+  # Model checkpointing
+  save_on_each_node: false
+  checkpoint_resume: true
+
+  # Data augmentation
+  data_augmentation: true
+  augmentation_probability: 0.1
+
+# Resource Management
+resources:
+  # Memory management
+  max_memory_per_gpu: "14GB"
+  cpu_memory_limit: "32GB"
+
+  # Compute optimization
+  mixed_precision: true
+  gradient_checkpointing: true
+  model_parallel: false
+
+  # I/O optimization
+  persistent_workers: true
+  prefetch_factor: 2
+
+# Quality Assurance
+quality:
+  # Validation during training
+  validation_frequency: 1000
+  validation_samples: 1000
+
+  # Quality metrics thresholds
+  min_perplexity_improvement: 0.01
+  max_gradient_norm: 1.0
+
+  # Model validation
+  validate_tokenizer: true
+  validate_model_output: true
+
+# Production Deployment
+deployment:
+  # Model export formats
+  export_onnx: false
+  export_tensorrt: false
+
+  # Serving optimization
+  optimize_for_inference: true
+  batch_size_optimization: true
+
+  # Model versioning
+  model_version: "1.0.0"
+  model_tags: ["production", "polish", "v1"]
+
+# Monitoring and Alerts
+monitoring:
+  # Performance monitoring
+  track_gpu_usage: true
+  track_memory_usage: true
+  track_training_metrics: true
+
+  # Alerting thresholds
+  gpu_memory_alert_threshold: 0.9
+  loss_spike_threshold: 2.0
+
+  # Health checks
+  enable_health_checks: true
+  health_check_interval: 300

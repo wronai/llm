@@ -17,8 +17,8 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 setup(
     name="wronai",
     version="0.1.0",
-    author="WronAI Team",
-    author_email="wronai@example.com",
+    author=Tom Sapletta,
+    author_email="wronai@softreck.dev",
     description="Polski model językowy - demokratyzacja AI dla języka polskiego",
     long_description=long_description,
     long_description_content_type="text/markdown",

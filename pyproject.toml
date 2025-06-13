@@ -9,10 +9,10 @@ description = "Polski model językowy - demokratyzacja AI dla języka polskiego"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 authors = [
-    {name = "WronAI Team", email = "wronai@example.com"}
+    {name = Tom Sapletta, email = "wronai@softreck.dev"}
 ]
 maintainers = [
-    {name = "WronAI Team", email = "wronai@example.com"}
+    {name = Tom Sapletta, email = "wronai@softreck.dev"}
 ]
 keywords = [
     "artificial intelligence",
