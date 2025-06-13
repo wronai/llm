@@ -14,7 +14,6 @@ from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-
 @dataclass
 class ChatMessage:
     """Represents a single chat message."""
@@ -32,7 +31,6 @@ class ChatMessage:
             self.metadata = {}
         if self.timestamp is None:
             self.timestamp = time.time()
-
 
 @dataclass
 class ConversationContext:
@@ -53,18 +51,17 @@ class ConversationContext:
         if self.metadata is None:
             self.metadata = {}
 
-
 class ConversationManager:
     """
     Manages conversation history and context.
     """
 
     def __init__(
-            self,
-            max_history_length: int = 20,
-            max_context_tokens: int = 2048,
-            save_conversations: bool = False,
-            storage_path: Optional[str] = None
+        self,
+        max_history_length: int = 20,
+        max_context_tokens: int = 2048,
+        save_conversations: bool = False,
+        storage_path: Optional[str] = None
     ):
         self.max_history_length = max_history_length
         self.max_context_tokens = max_context_tokens
@@ -83,10 +80,10 @@ class ConversationManager:
         }
 
     def create_conversation(
-            self,
-            user_id: Optional[str] = None,
-            session_id: Optional[str] = None,
-            system_prompt: Optional[str] = None
+        self,
+        user_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        system_prompt: Optional[str] = None
     ) -> str:
         """
         Create a new conversation.
@@ -126,11 +123,11 @@ class ConversationManager:
         return conversation_id
 
     def add_message(
-            self,
-            conversation_id: str,
-            role: str,
-            content: str,
-            metadata: Optional[Dict[str, Any]] = None
+        self,
+        conversation_id: str,
+        role: str,
+        content: str,
+        metadata: Optional[Dict[str, Any]] = None
     ) -> ChatMessage:
         """
         Add a message to conversation.
@@ -180,10 +177,10 @@ class ConversationManager:
         return message
 
     def get_conversation_history(
-            self,
-            conversation_id: str,
-            max_messages: Optional[int] = None,
-            include_system: bool = True
+        self,
+        conversation_id: str,
+        max_messages: Optional[int] = None,
+        include_system: bool = True
     ) -> List[ChatMessage]:
         """
         Get conversation history.
@@ -214,9 +211,9 @@ class ConversationManager:
         return self.conversation_contexts.get(conversation_id)
 
     def format_conversation_for_model(
-            self,
-            conversation_id: str,
-            max_tokens: Optional[int] = None
+        self,
+        conversation_id: str,
+        max_tokens: Optional[int] = None
     ) -> str:
         """
         Format conversation history for model input.
@@ -332,18 +329,17 @@ class ConversationManager:
         except Exception as e:
             logger.error(f"Failed to save conversation {conversation_id}: {e}")
 
-
 class ChatBot:
     """
     High-level chatbot interface for WronAI models.
     """
 
     def __init__(
-            self,
-            inference_engine: InferenceEngine,
-            conversation_manager: Optional[ConversationManager] = None,
-            system_prompt: Optional[str] = None,
-            personality: str = "helpful"
+        self,
+        inference_engine: InferenceEngine,
+        conversation_manager: Optional[ConversationManager] = None,
+        system_prompt: Optional[str] = None,
+        personality: str = "helpful"
     ):
         self.inference_engine = inference_engine
         self.conversation_manager = conversation_manager or ConversationManager()
@@ -371,10 +367,10 @@ class ChatBot:
         return prompts.get(personality, prompts["helpful"])
 
     def start_conversation(
-            self,
-            user_id: Optional[str] = None,
-            session_id: Optional[str] = None,
-            custom_system_prompt: Optional[str] = None
+        self,
+        user_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        custom_system_prompt: Optional[str] = None
     ) -> str:
         """
         Start a new conversation.
@@ -398,11 +394,11 @@ class ChatBot:
         return conversation_id
 
     def chat(
-            self,
-            message: str,
-            conversation_id: Optional[str] = None,
-            user_id: Optional[str] = None,
-            generation_config: Optional[InferenceConfig] = None
+        self,
+        message: str,
+        conversation_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        generation_config: Optional[InferenceConfig] = None
     ) -> Dict[str, Any]:
         """
         Send a message and get response.
@@ -503,4 +499,347 @@ class ChatBot:
 
         # Remove incomplete sentences at the end
         sentences = response.split('.')
-        if
+        if len(sentences) > 1 and len(sentences[-1].strip()) < 10:
+            response = '.'.join(sentences[:-1]) + '.'
+
+        return response
+
+    def _update_chat_stats(self, response_time: float):
+        """Update chat statistics."""
+        self.chat_stats["total_responses"] += 1
+        self.chat_stats["total_response_time"] += response_time
+        self.chat_stats["average_response_time"] = (
+            self.chat_stats["total_response_time"] / self.chat_stats["total_responses"]
+        )
+
+    def get_conversation_history(
+        self,
+        conversation_id: str,
+        format_for_display: bool = True
+    ) -> List[Dict[str, Any]]:
+        """
+        Get conversation history formatted for display.
+
+        Args:
+            conversation_id: Conversation identifier
+            format_for_display: Whether to format for display
+
+        Returns:
+            Formatted conversation history
+        """
+        messages = self.conversation_manager.get_conversation_history(
+            conversation_id=conversation_id,
+            include_system=False
+        )
+
+        if not format_for_display:
+            return [asdict(msg) for msg in messages]
+
+        formatted_history = []
+        for msg in messages:
+            formatted_msg = {
+                "role": msg.role,
+                "content": msg.content,
+                "timestamp": datetime.fromtimestamp(msg.timestamp).strftime("%Y-%m-%d %H:%M:%S"),
+                "message_id": msg.message_id
+            }
+
+            if msg.role == "user":
+                formatted_msg["display_name"] = "Ty"
+            elif msg.role == "assistant":
+                formatted_msg["display_name"] = "🐦‍⬛ WronAI"
+
+            formatted_history.append(formatted_msg)
+
+        return formatted_history
+
+    def clear_conversation(self, conversation_id: str):
+        """Clear conversation history."""
+        self.conversation_manager.clear_conversation(conversation_id)
+
+    def get_conversation_summary(self, conversation_id: str) -> Dict[str, Any]:
+        """Get conversation summary."""
+        summary = self.conversation_manager.get_conversation_summary(conversation_id)
+
+        # Add chat-specific metrics
+        messages = self.conversation_manager.get_conversation_history(conversation_id)
+        assistant_messages = [msg for msg in messages if msg.role == "assistant"]
+
+        if assistant_messages:
+            generation_times = [
+                msg.metadata.get("generation_time", 0)
+                for msg in assistant_messages
+                if msg.metadata
+            ]
+
+            if generation_times:
+                summary["avg_generation_time"] = sum(generation_times) / len(generation_times)
+                summary["total_generation_time"] = sum(generation_times)
+
+        return summary
+
+    def set_personality(self, personality: str, conversation_id: Optional[str] = None):
+        """
+        Change chatbot personality.
+
+        Args:
+            personality: New personality type
+            conversation_id: Optional conversation to update
+        """
+        self.personality = personality
+        new_system_prompt = self._get_default_system_prompt(personality)
+
+        if conversation_id:
+            # Add new system message to existing conversation
+            self.conversation_manager.add_message(
+                conversation_id=conversation_id,
+                role="system",
+                content=new_system_prompt
+            )
+        else:
+            # Update default for new conversations
+            self.default_system_prompt = new_system_prompt
+
+    def get_chat_statistics(self) -> Dict[str, Any]:
+        """Get chatbot statistics."""
+        return {
+            **self.chat_stats,
+            **self.conversation_manager.conversation_stats,
+            "personality": self.personality,
+            "active_conversations": len(self.conversation_manager.conversations)
+        }
+
+    def export_conversation(
+        self,
+        conversation_id: str,
+        format: str = "json"
+    ) -> Union[str, Dict[str, Any]]:
+        """
+        Export conversation in specified format.
+
+        Args:
+            conversation_id: Conversation to export
+            format: Export format (json, txt, md)
+
+        Returns:
+            Exported conversation data
+        """
+        messages = self.conversation_manager.get_conversation_history(conversation_id)
+        context = self.conversation_manager.get_conversation_context(conversation_id)
+
+        if format == "json":
+            return {
+                "conversation_id": conversation_id,
+                "context": asdict(context) if context else {},
+                "messages": [asdict(msg) for msg in messages],
+                "summary": self.get_conversation_summary(conversation_id)
+            }
+
+        elif format == "txt":
+            lines = [f"Konwersacja: {conversation_id}"]
+            if context:
+                lines.append(f"Utworzona: {datetime.fromtimestamp(context.created_at)}")
+            lines.append("-" * 50)
+
+            for msg in messages:
+                timestamp = datetime.fromtimestamp(msg.timestamp).strftime("%H:%M:%S")
+                if msg.role == "user":
+                    lines.append(f"[{timestamp}] Ty: {msg.content}")
+                elif msg.role == "assistant":
+                    lines.append(f"[{timestamp}] WronAI: {msg.content}")
+                elif msg.role == "system":
+                    lines.append(f"[{timestamp}] System: {msg.content}")
+                lines.append("")
+
+            return "\n".join(lines)
+
+        elif format == "md":
+            lines = [f"# Konwersacja {conversation_id}"]
+            if context:
+                lines.append(f"**Utworzona:** {datetime.fromtimestamp(context.created_at)}")
+            lines.append("")
+
+            for msg in messages:
+                timestamp = datetime.fromtimestamp(msg.timestamp).strftime("%H:%M:%S")
+                if msg.role == "user":
+                    lines.append(f"**[{timestamp}] Ty:**")
+                    lines.append(msg.content)
+                elif msg.role == "assistant":
+                    lines.append(f"**[{timestamp}] 🐦‍⬛ WronAI:**")
+                    lines.append(msg.content)
+                elif msg.role == "system":
+                    lines.append(f"*[{timestamp}] System: {msg.content}*")
+                lines.append("")
+
+            return "\n".join(lines)
+
+        else:
+            raise ValueError(f"Unsupported export format: {format}")
+
+class AdvancedChatBot(ChatBot):
+    """
+    Advanced chatbot with additional features.
+    """
+
+    def __init__(
+        self,
+        inference_engine: InferenceEngine,
+        conversation_manager: Optional[ConversationManager] = None,
+        system_prompt: Optional[str] = None,
+        personality: str = "helpful",
+        enable_memory: bool = True,
+        enable_context_awareness: bool = True
+    ):
+        super().__init__(inference_engine, conversation_manager, system_prompt, personality)
+
+        self.enable_memory = enable_memory
+        self.enable_context_awareness = enable_context_awareness
+
+        # Advanced features
+        self.user_preferences: Dict[str, Dict[str, Any]] = {}
+        self.conversation_topics: Dict[str, List[str]] = {}
+        self.response_filters: List[Callable[[str], str]] = []
+
+    def add_response_filter(self, filter_func: Callable[[str], str]):
+        """Add a response filter function."""
+        self.response_filters.append(filter_func)
+
+    def chat_with_context_awareness(
+        self,
+        message: str,
+        conversation_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        context_hints: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Chat with enhanced context awareness.
+
+        Args:
+            message: User message
+            conversation_id: Optional conversation ID
+            user_id: Optional user ID
+            context_hints: Optional context hints
+
+        Returns:
+            Enhanced response with context
+        """
+        # Extract context if enabled
+        if self.enable_context_awareness and conversation_id:
+            context = self._extract_conversation_context(conversation_id)
+            if context:
+                # Enhance message with context
+                enhanced_message = self._enhance_message_with_context(message, context)
+                message = enhanced_message
+
+        # Use base chat functionality
+        response_data = self.chat(
+            message=message,
+            conversation_id=conversation_id,
+            user_id=user_id
+        )
+
+        # Apply response filters
+        if self.response_filters:
+            filtered_response = response_data["response"]
+            for filter_func in self.response_filters:
+                filtered_response = filter_func(filtered_response)
+            response_data["response"] = filtered_response
+
+        # Update topic tracking
+        if conversation_id:
+            self._update_conversation_topics(conversation_id, message, response_data["response"])
+
+        return response_data
+
+    def _extract_conversation_context(self, conversation_id: str) -> Dict[str, Any]:
+        """Extract context from conversation history."""
+        messages = self.conversation_manager.get_conversation_history(conversation_id)
+
+        context = {
+            "topics": [],
+            "user_preferences": {},
+            "conversation_style": "neutral",
+            "recent_topics": []
+        }
+
+        # Extract topics from recent messages
+        recent_messages = messages[-10:]  # Last 10 messages
+        for msg in recent_messages:
+            if msg.role in ["user", "assistant"]:
+                # Simple keyword extraction (could be enhanced with NLP)
+                words = msg.content.lower().split()
+                topics = [word for word in words if len(word) > 5 and word.isalpha()]
+                context["recent_topics"].extend(topics[:3])  # Top 3 topics per message
+
+        return context
+
+    def _enhance_message_with_context(self, message: str, context: Dict[str, Any]) -> str:
+        """Enhance message with conversation context."""
+        # This is a simplified implementation
+        # In practice, you might use more sophisticated context injection
+
+        if context.get("recent_topics"):
+            # Add subtle context hints
+            recent_topics = context["recent_topics"][-3:]  # Last 3 topics
+            context_hint = f"Kontekst rozmowy: {', '.join(recent_topics)}. "
+            return context_hint + message
+
+        return message
+
+    def _update_conversation_topics(self, conversation_id: str, user_message: str, assistant_response: str):
+        """Update topic tracking for conversation."""
+        if conversation_id not in self.conversation_topics:
+            self.conversation_topics[conversation_id] = []
+
+        # Simple topic extraction (could be enhanced)
+        combined_text = f"{user_message} {assistant_response}".lower()
+        words = combined_text.split()
+        topics = [word for word in words if len(word) > 5 and word.isalpha()]
+
+        # Add unique topics
+        existing_topics = set(self.conversation_topics[conversation_id])
+        new_topics = [topic for topic in topics if topic not in existing_topics]
+
+        self.conversation_topics[conversation_id].extend(new_topics[:5])  # Max 5 new topics
+
+        # Keep only recent topics
+        if len(self.conversation_topics[conversation_id]) > 20:
+            self.conversation_topics[conversation_id] = self.conversation_topics[conversation_id][-20:]
+
+    def get_conversation_insights(self, conversation_id: str) -> Dict[str, Any]:
+        """Get insights about the conversation."""
+        summary = self.get_conversation_summary(conversation_id)
+        topics = self.conversation_topics.get(conversation_id, [])
+
+        insights = {
+            **summary,
+            "topics": topics,
+            "topic_count": len(set(topics)),
+            "conversation_depth": len(topics) / max(summary.get("total_messages", 1), 1)
+        }
+
+        return insights
+
+    def suggest_follow_up_questions(self, conversation_id: str) -> List[str]:
+        """Suggest follow-up questions based on conversation."""
+        topics = self.conversation_topics.get(conversation_id, [])
+
+        if not topics:
+            return [
+                "Czy mogę w czymś jeszcze pomóc?",
+                "Masz jakieś pytania?",
+                "O czym chciałbyś porozmawiać?"
+            ]
+
+        # Generate topic-based suggestions
+        recent_topics = topics[-3:]
+        suggestions = []
+
+        for topic in recent_topics:
+            suggestions.extend([
+                f"Chcesz dowiedzieć się więcej o {topic}?",
+                f"Jak {topic} wpływa na codzienne życie?",
+                f"Jakie są najnowsze trendy związane z {topic}?"
+            ])
+
+        return suggestions[:5]  # Return top 5 suggestions

@@ -23,8 +23,14 @@ graph TD
         H --> C
     end
     
-    style "Mistral-7B Architecture" fill:#bbf,stroke:#333,stroke-width:2px
-    style "WronAI Adaptations" fill:#fbf,stroke:#333,stroke-width:2px
+    style A fill:#f9f,stroke:#333,stroke-width:2px,color:#333
+    style B fill:#bbf,stroke:#333,stroke-width:2px,color:#333
+    style C fill:#bfb,stroke:#333,stroke-width:2px,color:#333
+    style D fill:#fbf,stroke:#333,stroke-width:2px,color:#333
+    style E fill:#bff,stroke:#333,stroke-width:2px,color:#333
+    style F fill:#fbb,stroke:#333,stroke-width:2px,color:#333
+    style G fill:#f9f,stroke:#333,stroke-width:2px,color:#333
+    style H fill:#bbf,stroke:#333,stroke-width:2px,color:#333
 ```
 
 ### Key Components
