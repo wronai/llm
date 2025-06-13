@@ -155,13 +155,15 @@ class WronAITrainer:
 
         # Tokenization function
         def tokenize_function(examples):
-            # Combine instruction and response for causal LM
+            # Convert IMDB text to instruction format
             texts = []
-            for instruction, response in zip(
-                examples["instruction"], examples["response"]
-            ):
-                text = f"<polish><question>{instruction}</question><answer>{response}</answer></polish>"
-                texts.append(text)
+            for text, label in zip(examples["text"], examples["label"]):
+                # Convert label (0 or 1) to sentiment
+                sentiment = "positive" if label == 1 else "negative"
+                instruction = f"Classify the sentiment of this movie review as positive or negative."
+                response = f"The sentiment of this review is {sentiment}."
+                formatted_text = f"<polish><question>{instruction}</question><text>{text}</text><answer>{response}</answer></polish>"
+                texts.append(formatted_text)
 
             return tokenizer(
                 texts,
