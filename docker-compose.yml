@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  wronai-training:
+    build: .
+    container_name: wronai-training
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - WANDB_API_KEY=${WANDB_API_KEY}
+      - CUDA_VISIBLE_DEVICES=0
+    volumes:
+      - ./data:/app/data
+      - ./checkpoints:/app/checkpoints
+      - ./logs:/app/logs
+      - ./configs:/app/configs
+    command: python scripts/train.py --config configs/default.yaml
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - wronai-network
+
+  wronai-inference:
+    build: .
+    container_name: wronai-inference
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+    volumes:
+      - ./checkpoints:/app/checkpoints
+      - ./logs:/app/logs
+    ports:
+      - "8000:8000"
+    command: python scripts/serve.py --model checkpoints/wronai-7b --port 8000
+    depends_on:
+      - wronai-training
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - wronai-network
+
+  wronai-data-prep:
+    build: .
+    container_name: wronai-data-prep
+    volumes:
+      - ./data:/app/data
+    command: python scripts/prepare_data.py --all
+    networks:
+      - wronai-network
+
+  tensorboard:
+    image: tensorflow/tensorflow:latest
+    container_name: wronai-tensorboard
+    ports:
+      - "6006:6006"
+    volumes:
+      - ./logs:/logs
+    command: tensorboard --logdir=/logs --host=0.0.0.0 --port=6006
+    networks:
+      - wronai-network
+
+networks:
+  wronai-network:
+    driver: bridge
+
+volumes:
+  wronai-data:
+  wronai-checkpoints:
+  wronai-logs:

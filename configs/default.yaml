@@ -1,0 +1,104 @@
+# WronAI Default Training Configuration
+
+# Model Configuration
+model:
+  name: "mistralai/Mistral-7B-v0.1"
+  trust_remote_code: true
+  torch_dtype: "bfloat16"
+  device_map: "auto"
+
+# LoRA Configuration
+lora:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.1
+  bias: "none"
+  task_type: "CAUSAL_LM"
+  target_modules:
+    - "q_proj"
+    - "v_proj"
+    - "k_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+
+# Quantization Configuration
+quantization:
+  load_in_4bit: true
+  bnb_4bit_compute_dtype: "bfloat16"
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_use_double_quant: true
+
+# Training Configuration
+training:
+  output_dir: "./checkpoints/wronai-7b"
+  num_train_epochs: 3
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 1
+  gradient_accumulation_steps: 16
+  warmup_ratio: 0.03
+  learning_rate: 2e-4
+  fp16: false
+  bf16: true
+  logging_steps: 10
+  save_steps: 500
+  eval_steps: 500
+  evaluation_strategy: "steps"
+  save_strategy: "steps"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+  save_total_limit: 3
+  remove_unused_columns: false
+  dataloader_pin_memory: false
+  gradient_checkpointing: true
+  group_by_length: true
+  optim: "paged_adamw_32bit"
+  lr_scheduler_type: "cosine"
+  max_grad_norm: 1.0
+  weight_decay: 0.01
+
+# Data Configuration
+data:
+  dataset_name: "wronai/polish-instruct"
+  train_split: "train"
+  eval_split: "validation"
+  max_seq_length: 2048
+  preprocessing_num_workers: 4
+
+# Polish Language Specific
+polish:
+  tokenizer_vocab_size: 32000
+  add_polish_tokens: true
+  polish_stopwords: true
+  morphological_analysis: true
+
+# Logging and Monitoring
+logging:
+  wandb_project: "wronai"
+  wandb_run_name: "wronai-7b-base"
+  log_level: "INFO"
+  report_to: ["tensorboard", "wandb"]
+
+# Hardware Optimization
+hardware:
+  max_memory_mb: 7000  # For 8GB GPU
+  cpu_offload: true
+  pin_memory: false
+  dataloader_num_workers: 2
+
+# Safety and Alignment
+safety:
+  content_filter: true
+  toxic_threshold: 0.8
+  bias_detection: true
+
+# Evaluation
+evaluation:
+  metrics: ["perplexity", "bleu", "rouge"]
+  polish_specific_metrics: true
+  benchmark_datasets:
+    - "polish_qa"
+    - "polish_sentiment"
+    - "polish_ner"
