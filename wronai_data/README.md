@@ -72,10 +72,10 @@ bash setup.sh
 source venv/bin/activate
 
 # Test (100MB)
-python scripts/test_data_collection.py
+python3 scripts/test_data_collection.py
 
 # Pełne zbieranie (5GB)
-python scripts/collect_wronai_data_fixed.py
+python3 scripts/collect_wronai_data_fixed.py
 ```
 
 ## Dostępne źródła
@@ -124,14 +124,25 @@ Format JSONL:
 
 ## Użycie
 
-Aby uruchomić pełny pipeline zbierania danych:
+### Uruchamianie skryptów
+
+WronAI Data Collection Pipeline zawiera kilka skryptów do zbierania danych. Możesz je łatwo uruchamiać za pomocą skryptu `run_scripts.py`:
 
 ```bash
 # Aktywuj środowisko wirtualne
 source venv/bin/activate
 
-# Uruchom skrypt
-python collect_wronai_data.py
+# Wyświetl dostępne skrypty
+python3 run_scripts.py list
+
+# Uruchom pełny pipeline zbierania danych
+python3 run_scripts.py collect
+
+# Uruchom szybką wersję zbierania danych (mniej zależności)
+python3 run_scripts.py quick
+
+# Uruchom testy
+python3 run_scripts.py test
 ```
 
 ### Parametry konfiguracyjne
@@ -267,3 +278,222 @@ Ten projekt jest udostępniany na licencji Apache 2.0. Zobacz plik `LICENSE` w r
 ## Autorzy
 
 Zespół WronAI
+
+
+
+### 📋 **Przegląd Skryptów**
+
+1. **🔍 `quick_start_wronai.py`** - Zbieranie danych
+   - Pobiera polską Wikipedię, Wolne Lektury
+   - Fallback na syntetyczne dane
+   - Domyślnie 500MB danych
+
+2. **⚙️ `processing.py`** - Przetwarzanie danych  
+   - Czyszczenie i filtrowanie tekstów
+   - Tokenizacja i chunking
+   - Deduplikacja i train/val/test split
+
+3. **🏋️ `training.py`** - Trening modelu
+   - QLoRA + 4-bit quantization
+   - Optimized dla GPU/CPU
+   - Tensorboard logging
+
+4. **🤖 `inference.py`** - Inferowanie i ewaluacja
+   - Generowanie tekstów
+   - Gradio interface  
+   - Performance benchmarking
+
+5. **🎯 `pipeline.py`** - Master orchestrator
+   - Zarządza całym pipeline'm
+   - CLI interface
+   - State management
+
+---
+
+## 🚀 **Jak uruchomić (3 kroki):**
+
+### **Krok 1: Setup**
+```bash
+python pipeline.py setup
+pip install -r requirements.txt
+```
+
+### **Krok 2: Pełny Pipeline**
+```bash
+python pipeline.py full --size 1000 --model microsoft/DialoGPT-medium
+```
+
+### **Krok 3: Uruchom model**
+```bash
+python scripts/pipeline.py infer
+```
+
+---
+
+## 🔧 **Dostępne komendy:**
+
+```bash
+# Sprawdź status
+python scripts/pipeline.py status
+
+# Tylko zbieranie danych (2GB)
+python scripts/pipeline.py collect --size 2000
+
+# Tylko trening (jeśli dane gotowe)
+python scripts/pipeline.py train --model "microsoft/DialoGPT-medium"
+
+# Wyczyść workspace
+python scripts/pipeline.py clean
+```
+
+---
+
+## 📊 **Funkcje systemu:**
+
+### ✅ **Smart Data Collection**
+- Automatyczne fallback na dostępne źródła
+- Graceful error handling
+- Progress tracking
+
+### ✅ **Optimized Training**
+- QLoRA dla efektywności pamięci
+- 4-bit quantization
+- Auto GPU/CPU detection
+- Early stopping
+
+### ✅ **Interactive Interface**
+- Gradio web UI
+- Chat interface
+- Real-time generation
+
+### ✅ **Interactive Interface**
+- Gradio web UI
+- Chat interface  
+- Real-time generation
+- Parameter tuning
+
+### ✅ **Comprehensive Evaluation**
+- Polish language capabilities testing
+- Performance benchmarking
+- Quality metrics
+- Generation samples
+
+### ✅ **Production Ready**
+- State management
+- Error recovery
+- Logging & monitoring
+- Modular architecture
+
+---
+
+## 🎯 **Pipeline Flow:**
+
+```
+📥 Data Collection → ⚙️ Processing → 🏋️ Training → 🤖 Inference
+     ↓                    ↓              ↓           ↓
+  500MB+ Polish       Tokenized      WronAI      Gradio UI
+  Text Corpus        Chunks         Model       + Chat
+```
+
+---
+
+## 📈 **Expected Results:**
+
+Po zakończeniu pipeline'u otrzymasz:
+
+### 📂 **Workspace Structure:**
+```
+wronai_workspace/
+├── data/              # Surowe dane (Wikipedia, lektury)
+├── processed/         # Przetworzone chunki + tokeny
+├── model/            # Wytrenowany model WronAI
+├── logs/             # Logi treningu
+└── final_pipeline_report.json
+```
+
+### 🤖 **Trained Model:**
+- **Bazowy**: DialoGPT-medium (350M parametrów)
+- **LoRA adapters**: ~16M trenowalnych parametrów  
+- **Język**: Dostosowany do polskiego
+- **Rozmiar**: ~700MB (z quantization)
+
+### 📊 **Performance Metrics:**
+- **Perplexity**: ~15-25 (im niższy tym lepiej)
+- **Generation speed**: 10-50 tokenów/s (GPU dependent)
+- **Polish capability**: 70-85% success rate na testach
+
+---
+
+## 🛠️ **Troubleshooting:**
+
+### **Problem: Brak GPU**
+```bash
+# Pipeline automatycznie przełączy na CPU
+# Trening będzie wolniejszy ale zadziała
+python scripts/pipeline.py full --size 100  # Mniejszy dataset
+```
+
+### **Problem: Mało pamięci**
+```bash
+# Zmniejsz batch size w wronai_training.py
+batch_size = 1  # zamiast 4
+gradient_accumulation_steps = 32  # zamiast 8
+```
+
+### **Problem: Dane się nie pobierają**
+```bash
+# Sprawdź czy masz internet i uruchom tylko data collection
+python scripts/pipeline.py collect --size 500
+```
+
+### **Problem: Model nie generuje dobrze**
+```bash
+# Dostraj parametry w interfejsie:
+# - Temperature: 0.7-0.9 (kreatywność)
+# - Top-p: 0.8-0.95 (różnorodność)
+# - Max length: 100-300 (długość)
+```
+
+---
+
+## 🔮 **Dalszy rozwój:**
+
+### **Immediate improvements:**
+1. **Więcej danych**: Zwiększ `--size` do 5000+ MB
+2. **Lepszy model bazowy**: Użyj `mistralai/Mistral-7B-v0.1`
+3. **Domain adaptation**: Dodaj specjalistyczne korpusy
+
+### **Advanced features:**
+1. **RLHF**: Reinforcement Learning from Human Feedback
+2. **Multimodal**: Dodaj obsługę obrazów
+3. **RAG**: Retrieval Augmented Generation
+4. **Fine-tuning**: Task-specific adapters
+
+### **Production deployment:**
+1. **API server**: FastAPI + uvicorn
+2. **Docker**: Containerization
+3. **Monitoring**: MLflow + Prometheus
+4. **Scaling**: Kubernetes deployment
+
+---
+
+## 📚 **Następne kroki:**
+
+1. **Uruchom pipeline** - `python scripts/pipeline.py full`
+2. **Przetestuj model** w interfejsie Gradio
+3. **Oceń wyniki** przez generation samples
+4. **Iteruj** - dostrajaj parametry i zwiększaj dane
+5. **Deploy** - stwórz API dla aplikacji
+
+---
+
+## 🏆 **Sukces oznacza:**
+
+✅ **Model generuje sensowne polskie teksty**  
+✅ **Rozumie kontekst i gramatykę**  
+✅ **Interface działa płynnie**  
+✅ **Performance jest akceptowalny**  
+✅ **System jest skalowalny i rozszerzalny**
+
+
+

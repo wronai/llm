@@ -38,8 +38,14 @@ class WronAICollector:
         logger.info("Pobieranie polskiej Wikipedii...")
 
         try:
-            # Używamy dostępnej wersji 2022
-            dataset = load_dataset("wikipedia", "20220301.pl", split="train", trust_remote_code=True)
+            # Używamy alternatywnego podejścia - bezpośrednio przez HuggingFace
+            dataset = load_dataset(
+                "wikipedia", 
+                language="pl", 
+                date="20220301", 
+                split="train", 
+                trust_remote_code=True
+            )
 
             output_file = self.output_dir / "wikipedia_pl.jsonl"
             processed_count = 0
@@ -69,6 +75,54 @@ class WronAICollector:
 
         except Exception as e:
             logger.error(f"Błąd Wikipedia: {e}")
+            # Fallback - użyj alternatywnego źródła
+            self.collect_wikipedia_fallback()
+
+    def collect_wikipedia_fallback(self):
+        """Alternatywna metoda pobierania danych z Wikipedii."""
+        logger.info("Próba alternatywnego pobierania Wikipedii...")
+        
+        try:
+            # Użyj mC4 jako alternatywy - zawiera dużo tekstów z Wikipedii
+            dataset = load_dataset(
+                "mc4", 
+                "pl", 
+                split="train", 
+                streaming=True,
+                trust_remote_code=True
+            )
+            
+            output_file = self.output_dir / "wikipedia_pl.jsonl"
+            processed_count = 0
+            
+            with open(output_file, 'w', encoding='utf-8') as f:
+                for item in tqdm(dataset.take(5000), desc="Wikipedia (fallback)"):
+                    if self.total_size_bytes >= self.target_size_bytes:
+                        break
+                    
+                    # Filtruj tylko teksty, które wyglądają jak z Wikipedii
+                    if "wikipedia" in item.get('url', '').lower():
+                        text = self.clean_text(item['text'])
+                        if len(text) < 500:
+                            continue
+                        
+                        doc = {
+                            'id': f"wiki_fallback_{processed_count}",
+                            'title': item.get('url', '').split('/')[-1],
+                            'text': text,
+                            'source': 'wikipedia_fallback'
+                        }
+                        
+                        f.write(json.dumps(doc, ensure_ascii=False) + '\n')
+                        processed_count += 1
+                        self.total_size_bytes += len(text.encode('utf-8'))
+            
+            self.source_stats['wikipedia_fallback'] = processed_count
+            logger.info(f"Wikipedia (fallback): {processed_count} artykułów")
+            
+        except Exception as e:
+            logger.error(f"Błąd Wikipedia fallback: {e}")
+            logger.info("Pomijam źródło Wikipedia - kontynuuję z innymi źródłami")
 
     def collect_wolne_lektury(self):
         """Pobierz Wolne Lektury z lepszym error handling."""
