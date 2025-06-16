@@ -1,0 +1,23 @@
+wronai_data/
+├── raw_data/
+│   ├── high_quality/          # Wikipedia, książki, papers
+│   │   ├── wikipedia_pl/
+│   │   ├── wolne_lektury/
+│   │   └── academic_papers/
+│   ├── medium_quality/        # Wiadomości, fora, Q&A
+│   │   ├── news_portals/
+│   │   ├── forums_discussions/
+│   │   └── qa_platforms/
+│   └── low_quality/           # Media społecznościowe, komentarze
+│       ├── social_media/
+│       ├── web_comments/
+│       └── unfiltered_crawl/
+├── processed_data/
+│   ├── filtered/              # Po filtrowaniu jakości
+│   ├── deduplicated/         # Po deduplikacji
+│   ├── tokenized/            # Po tokenizacji
+│   └── balanced/             # Po balansowaniu domen
+└── splits/
+    ├── train/                # 80% danych
+    ├── validation/           # 10% danych
+    └── test/                # 10% danych

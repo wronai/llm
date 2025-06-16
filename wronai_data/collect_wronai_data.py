@@ -80,8 +80,8 @@ class WronAIDataCollector:
         logger.info("Rozpoczynam pobieranie polskiej Wikipedii...")
 
         try:
-            # Pobierz dataset Wikipedii
-            dataset = load_dataset("wikipedia", "20231101.pl", split="train")
+            # Pobierz dataset Wikipedii - używamy dostępnej wersji
+            dataset = load_dataset("wikipedia", "20220301.pl", split="train", trust_remote_code=True)
 
             output_file = self.output_dir / "raw_data/high_quality/wikipedia_pl/articles.jsonl"
             processed_count = 0
@@ -123,13 +123,13 @@ class WronAIDataCollector:
         logger.info("Rozpoczynam pobieranie OSCAR Polish...")
 
         try:
-            # Załaduj OSCAR dataset
+            # Załaduj OSCAR dataset - używamy publicznie dostępnej wersji
             dataset = load_dataset(
-                "oscar-corpus/OSCAR-2201",
-                "pl",
+                "oscar",
+                "unshuffled_deduplicated_pl",
                 split="train",
                 streaming=True,
-                use_auth_token=True
+                trust_remote_code=True
             )
 
             output_file = self.output_dir / "raw_data/medium_quality/oscar_pl/texts.jsonl"
