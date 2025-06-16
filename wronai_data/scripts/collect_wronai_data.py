@@ -357,7 +357,9 @@ class WronAIDataCollector:
         ]
 
         processed_count = 0
-        output_file = self.output_dir / "raw_data/medium_quality/github_corpora/texts.jsonl"
+        output_dir = self.output_dir / "raw_data/medium_quality/github_corpora"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_file = output_dir / "texts.jsonl"
 
         with open(output_file, 'w', encoding='utf-8') as f:
             for url in github_corpora:
