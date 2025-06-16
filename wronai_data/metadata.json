@@ -1,0 +1,29 @@
+{
+  "dataset_info": {
+    "name": "wronai_training_v1.0",
+    "version": "1.0.0",
+    "created_date": "2025-06-16",
+    "total_samples": 2500000,
+    "total_tokens": 12000000000,
+    "target_size_gb": 50
+  },
+  "source_attribution": {
+    "primary_sources": ["oscar", "wikipedia", "nkjp", "wolne_lektury"],
+    "crawl_dates": ["2023-01-01", "2024-12-31"],
+    "licenses": ["CC0", "CC-BY-SA", "Public Domain"]
+  },
+  "quality_metrics": {
+    "perplexity_threshold": 500,
+    "deduplication_ratio": 0.25,
+    "polish_detection_confidence": 0.95,
+    "min_text_length": 100
+  },
+  "domain_composition": {
+    "web_content": 0.70,
+    "encyclopedic": 0.08,
+    "literary": 0.06,
+    "conversational": 0.10,
+    "academic": 0.04,
+    "parliamentary": 0.02
+  }
+}
