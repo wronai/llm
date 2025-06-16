@@ -4,7 +4,8 @@
 
 WronAI to open-source projekt mający na celu stworzenie efektywnego polskiego modelu językowego, który
 można trenować i uruchamiać na sprzęcie konsumenckim. 
-Projekt wykorzystuje najnowsze techniki optymalizacji jak QLoRA, gradient checkpointing i kwantyzację do osiągnięcia maksymalnej wydajności przy minimalnych wymaganiach sprzętowych.
+Projekt wykorzystuje najnowsze techniki optymalizacji jak QLoRA, gradient checkpointing i kwantyzację 
+do osiągnięcia maksymalnej wydajności przy minimalnych wymaganiach sprzętowych.
 
 ## 🎯 Cele projektu
 
