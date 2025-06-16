@@ -67,7 +67,7 @@ setup(
             "flash-attn>=2.3.0",
             "deepspeed>=0.10.0",
             "ray>=2.7.0",
-        ]
+        ],
     },
     entry_points={
         "console_scripts": [

@@ -38,20 +38,143 @@ logger = logging.getLogger(__name__)
 
 
 class WronAIInference:
-    def __init__(self, model_path: str, quantize: bool = True):
-        """Initialize inference engine."""
+    def __init__(self, model_path: str, quantize: bool = True, base_model: Optional[str] = None):
+        """Initialize WronAI inference.
+
+        Args:
+            model_path (str): Path to model directory or huggingface model name
+            quantize (bool): Use 4-bit quantization for faster inference with less memory
+            base_model (Optional[str]): Override base model to use with LoRA checkpoint
+        """
         self.model_path = model_path
         self.quantize = quantize
+        self.base_model_override = base_model
         self.tokenizer = None
         self.model = None
         self.pipeline = None
 
+        # Step 1: Load tokenizer and model
+        self.base_model_name, self.lora_config = self.detect_model_config()
+        self.load_tokenizer()
         self.load_model()
+        
+        # Step 2: Initialize pipeline
+        self.init_pipeline()
+
+        logger.info("Model loaded successfully!")
+
+    def detect_model_config(self):
+        """Detect model configuration from checkpoint path or use defaults."""
+        # Default models
+        base_model_name = "facebook/opt-1.3b"
+        fallback_model_name = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+        lora_config = None
+        
+        # If user specified a base model, use that
+        if self.base_model_override:
+            logger.info(f"Using user-specified base model: {self.base_model_override}")
+            base_model_name = self.base_model_override
+        
+        # Check if path contains a LoRA checkpoint
+        model_path = Path(self.model_path)
+        if (model_path / "adapter_config.json").exists():
+            try:
+                # Try to load adapter_config to get base model information
+                import json
+                adapter_config_path = model_path / "adapter_config.json"
+                with open(adapter_config_path, 'r') as f:
+                    adapter_config = json.load(f)
+                
+                # Store the complete config
+                lora_config = adapter_config
+                
+                # Extract base model name from config
+                base_model_from_config = adapter_config.get("base_model_name_or_path")
+                if base_model_from_config and not self.base_model_override:
+                    logger.info(f"LoRA was trained on base model: {base_model_from_config}")
+                    # Update the base model name if we found it in the config
+                    base_model_name = base_model_from_config
+            except Exception as e:
+                logger.warning(f"Could not read adapter_config.json: {e}")
+        
+        return base_model_name, lora_config
+        
+    def load_tokenizer(self):
+        """Load tokenizer for inference."""
+        logger.info(f"Loading tokenizer from: {self.model_path}")
+        
+        # We'll use the base_model_name detected in __init__ and fallback if needed
+        fallback_model_name = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+        
+        # Check if we should use the local model directory
+        model_path = Path(self.model_path)
+        
+        # If this is a LoRA checkpoint, look for the tokenizer there
+        if (model_path / "adapter_config.json").exists():
+            logger.info(f"Found LoRA checkpoint at: {self.model_path}")
+            try:
+                # We already detected the config in __init__, just load tokenizer
+                
+                # Try to load tokenizer from checkpoint or base model
+                try:
+                    self.tokenizer = AutoTokenizer.from_pretrained(
+                        self.model_path,
+                        use_fast=True
+                    )
+                    logger.info("Tokenizer loaded from LoRA checkpoint directory")
+                    return
+                except Exception as e:
+                    logger.warning(f"Could not load tokenizer from checkpoint: {e}")
+                    logger.info("Trying to load tokenizer from base model...")
+                    
+                    try:
+                        self.tokenizer = AutoTokenizer.from_pretrained(
+                            self.base_model_name,
+                            use_fast=True
+                        )
+                        logger.info(f"Tokenizer loaded from base model: {self.base_model_name}")
+                        return
+                    except Exception as e2:
+                        logger.warning(f"Could not load tokenizer from base model {self.base_model_name}: {e2}")
+            except Exception as e:
+                logger.warning(f"Error processing LoRA checkpoint: {e}")
+        
+        # Check for a full model (not LoRA)
+        elif model_path.exists() and (model_path / "config.json").exists():
+            logger.info(f"Found local model at: {self.model_path}")
+            try:
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    self.model_path,
+                    use_fast=True
+                )
+                logger.info("Tokenizer loaded from local model directory")
+                return
+            except Exception as e:
+                logger.warning(f"Could not load tokenizer from local model: {e}")
+                logger.info("Falling back to base model...")
+        
+        # Try to load the tokenizer from the base model
+        try:
+            logger.info(f"Attempting to load tokenizer from: {base_model_name}")
+            self.tokenizer = AutoTokenizer.from_pretrained(base_model_name, use_fast=True)
+            logger.info("Tokenizer loaded successfully")
+            return
+        except Exception as e:
+            logger.warning(f"Could not load tokenizer from {self.base_model_name}: {e}")
+        
+        # Finally, try the fallback model
+        try:
+            logger.info(f" Falling back to {fallback_model_name}. Note that LoRA adapters may not be compatible.")
+            self.tokenizer = AutoTokenizer.from_pretrained(fallback_model_name, use_fast=True)
+            logger.info("Tokenizer loaded from fallback model")
+        except Exception as e:
+            logger.error(f"Failed to load tokenizer: {e}")
+            raise
 
     def load_model(self):
-        """Load model and tokenizer for inference."""
+        """Load model for inference."""
         logger.info(f"Loading model from: {self.model_path}")
-
+        
         # Quantization config for inference
         if self.quantize:
             quantization_config = BitsAndBytesConfig(
@@ -62,16 +185,89 @@ class WronAIInference:
             )
         else:
             quantization_config = None
-
-        # Model configuration
-        # Using OPT-1.3B to match the LoRA checkpoint
-        base_model_name = "facebook/opt-1.3b"
-        # Fallback to a smaller model if needed
+            
+        # Fallback model if needed
         fallback_model_name = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
         
-        # Check if we should use the local model directory
+        # Path to model or checkpoint
         model_path = Path(self.model_path)
-        if model_path.exists() and (model_path / "config.json").exists():
+        
+        # Load the model
+        try:
+            # First check if the path is to a complete model (not LoRA)
+            if model_path.exists() and (model_path / "config.json").exists() and not (model_path / "adapter_config.json").exists():
+                logger.info(f"Loading full model from local directory: {self.model_path}")
+                self.model = AutoModelForCausalLM.from_pretrained(
+                    self.model_path,
+                    quantization_config=quantization_config,
+                    torch_dtype=torch.bfloat16,
+                    device_map="auto",
+                    trust_remote_code=True
+                )
+                logger.info("Model loaded from local directory")
+                return
+        except Exception as e:
+            logger.warning(f"Could not load from local directory: {e}")
+            
+        # Try to load from base model or use fallback
+        try:
+            # Try to load base model
+            logger.info(f"Loading model: {self.base_model_name}")
+            self.model = AutoModelForCausalLM.from_pretrained(
+                self.base_model_name,
+                quantization_config=quantization_config,
+                torch_dtype=torch.bfloat16,
+                device_map="auto",
+                trust_remote_code=True
+            )
+            logger.info("Base model loaded successfully")
+        except Exception as e:
+            logger.error(f" Error: Could not load base model {self.base_model_name}. {e}")
+            logger.info(f"Loading fallback model: {fallback_model_name}")
+            
+            try:
+                self.model = AutoModelForCausalLM.from_pretrained(
+                    fallback_model_name,
+                    quantization_config=quantization_config,
+                    torch_dtype=torch.bfloat16,
+                    device_map="auto",
+                    trust_remote_code=True
+                )
+                logger.info("Fallback model loaded successfully")
+            except Exception as e2:
+                logger.error(f"Could not load fallback model: {e2}")
+                raise
+                
+        # Check if this is a LoRA checkpoint
+        if (Path(self.model_path) / "adapter_config.json").exists():
+            try:
+                logger.info(f"Found LoRA checkpoint at: {self.model_path}")
+                if hasattr(self, 'model'):
+                    logger.info("Applying LoRA adapters to the base model...")
+                    try:
+                        # Try first without strict loading to handle vocab size mismatches
+                        try:
+                            self.model = PeftModel.from_pretrained(
+                                self.model, self.model_path, 
+                                is_trainable=False,
+                                strict=False
+                            )
+                            logger.info("LoRA adapters loaded with non-strict matching (handling vocab size differences)")
+                        except Exception as e:
+                            logger.warning(f"Non-strict LoRA loading failed: {e}")
+                            # Fall back to standard loading
+                            self.model = PeftModel.from_pretrained(
+                                self.model, self.model_path, is_trainable=False
+                            )
+                            logger.info("LoRA adapters loaded with strict matching")
+                    except Exception as e:
+                        logger.error(f"Failed to load LoRA adapters: {e}")
+                        logger.info("Continuing without LoRA adapters")
+                else:
+                    logger.error("Base model not loaded. Cannot apply LoRA adapters.")
+            except Exception as e:
+                logger.error(f"Failed to load LoRA config/adapters: {e}")
+                logger.info("Continuing without LoRA adapters")
             logger.info(f"Found local model at: {self.model_path}")
             try:
                 self.tokenizer = AutoTokenizer.from_pretrained(
@@ -86,14 +282,14 @@ class WronAIInference:
         
         # Try to load from base model with authentication
         try:
-            logger.info(f"Attempting to load tokenizer from: {base_model_name}")
+            logger.info(f"Attempting to load tokenizer from: {self.base_model_name}")
             self.tokenizer = AutoTokenizer.from_pretrained(
-                base_model_name,
+                self.base_model_name,
                 use_fast=True
             )
             logger.info("Tokenizer loaded successfully")
         except Exception as e:
-            logger.warning(f"Could not load tokenizer from {base_model_name}: {e}")
+            logger.warning(f"Could not load tokenizer from {self.base_model_name}: {e}")
             if "authentication" in str(e).lower():
                 logger.error("\n" + "="*80)
                 logger.error("AUTHENTICATION REQUIRED")
@@ -104,7 +300,7 @@ class WronAIInference:
                 logger.error("="*80 + "\n")
             
             # Fallback to TinyLlama
-            logger.info(f"Falling back to: {fallback_model_name}")
+            logger.info(f" Falling back to {fallback_model_name}. Note that LoRA adapters may not be compatible.")
             self.tokenizer = AutoTokenizer.from_pretrained(
                 fallback_model_name,
                 use_fast=True
@@ -116,9 +312,9 @@ class WronAIInference:
 
         # Load the model
         try:
-            # First try to load from local directory if it exists
-            if model_path.exists() and (model_path / "config.json").exists():
-                logger.info(f"Loading model from local directory: {self.model_path}")
+            # First check if the path is to a complete model (not LoRA)
+            if model_path.exists() and (model_path / "config.json").exists() and not (model_path / "adapter_config.json").exists():
+                logger.info(f"Loading full model from local directory: {self.model_path}")
                 self.model = AutoModelForCausalLM.from_pretrained(
                     self.model_path,
                     quantization_config=quantization_config,
@@ -130,9 +326,9 @@ class WronAIInference:
                 return
                 
             # If no local model, try loading base model
-            logger.info(f"Loading model: {base_model_name}")
+            logger.info(f"Loading model: {self.base_model_name}")
             self.model = AutoModelForCausalLM.from_pretrained(
-                base_model_name,
+                self.base_model_name,
                 quantization_config=quantization_config,
                 torch_dtype=torch.bfloat16,
                 device_map="auto",
@@ -142,7 +338,7 @@ class WronAIInference:
             
         except Exception as e:
             # If base model fails, try fallback model
-            logger.warning(f"Could not load base model {base_model_name}: {e}")
+            logger.error(f" Error: Could not load base model {self.base_model_name}. {e}")
             logger.info(f"Loading fallback model: {fallback_model_name}")
             self.model = AutoModelForCausalLM.from_pretrained(
                 fallback_model_name,
@@ -157,14 +353,37 @@ class WronAIInference:
         if (Path(self.model_path) / "adapter_config.json").exists():
             try:
                 logger.info(f"Found LoRA checkpoint at: {self.model_path}")
+                
+                # Try to load adapter_config to get base model information
+                import json
+                adapter_config_path = Path(self.model_path) / "adapter_config.json"
+                with open(adapter_config_path, 'r') as f:
+                    adapter_config = json.load(f)
+                
+                # Extract base model name from config
+                base_model_from_config = adapter_config.get("base_model_name_or_path")
+                if base_model_from_config:
+                    logger.info(f"LoRA was trained on base model: {base_model_from_config}")
+                    # Update the base model name if we found it in the config
+                    base_model_name = base_model_from_config
+                
+                # Load tokenizer from LoRA checkpoint rather than base model
+                # This is important if the tokenizer was customized during training
                 if hasattr(self, 'model'):
                     logger.info("Applying LoRA adapters to the base model...")
-                    self.model = PeftModel.from_pretrained(self.model, self.model_path)
-                    logger.info("LoRA adapters loaded and applied successfully")
+                    try:
+                        # First try with strict=True
+                        self.model = PeftModel.from_pretrained(
+                            self.model, self.model_path, is_trainable=False
+                        )
+                        logger.info("LoRA adapters loaded and applied successfully")
+                    except Exception as e:
+                        logger.warning(f"This model requires authentication. Please login with `huggingface-cli login` {e}")
+                        logger.info("Continuing without LoRA adapters")
                 else:
                     logger.error("Base model not loaded. Cannot apply LoRA adapters.")
             except Exception as e:
-                logger.error(f"Failed to load LoRA adapters: {e}")
+                logger.error(f"Failed to load LoRA config/adapters: {e}")
                 logger.info("Continuing without LoRA adapters")
         else:
             # Try loading as a full model
@@ -182,16 +401,29 @@ class WronAIInference:
                 logger.warning(f"Could not load full model: {e2}")
                 logger.info("Continuing with base model only")
 
-        # Create text generation pipeline
-        self.pipeline = pipeline(
-            "text-generation",
-            model=self.model,
-            tokenizer=self.tokenizer,
-            torch_dtype=torch.bfloat16,
-            device_map="auto"
-        )
+    def init_pipeline(self):
+        """Initialize the text generation pipeline."""
+        if not hasattr(self, 'model') or self.model is None:
+            logger.error("No model loaded, cannot initialize pipeline")
+            return
 
-        logger.info("Model loaded successfully!")
+        if not hasattr(self, 'tokenizer') or self.tokenizer is None:
+            logger.error("No tokenizer loaded, cannot initialize pipeline")
+            return
+
+        logger.info("Initializing pipeline...")
+        try:
+            self.pipeline = pipeline(
+                "text-generation",
+                model=self.model,
+                tokenizer=self.tokenizer,
+                torch_dtype=torch.bfloat16,
+                device_map="auto"
+            )
+            logger.info("Pipeline initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize pipeline: {e}")
+            raise
 
     def format_prompt(self, instruction: str, system_prompt: Optional[str] = None) -> str:
         """Format prompt for the model."""
@@ -309,76 +541,80 @@ class WronAIInference:
 
 
 def main():
+    """Run inference with WronAI model."""
     parser = argparse.ArgumentParser(description="WronAI Inference Script")
     parser.add_argument(
-        "--model",
-        type=str,
-        required=True,
-        help="Path to trained WronAI model"
+        "--model", type=str, required=True,
+        help="Path to model directory or huggingface model name"
     )
     parser.add_argument(
-        "--prompt",
-        type=str,
-        help="Single prompt for generation"
+        "--prompt", type=str, default=None,
+        help="Text prompt for generation"
     )
     parser.add_argument(
-        "--max-length",
-        type=int,
-        default=512,
-        help="Maximum generation length"
+        "--base-model", type=str, default=None,
+        help="Override base model to use with LoRA checkpoint"
     )
     parser.add_argument(
-        "--temperature",
-        type=float,
-        default=0.7,
-        help="Sampling temperature"
+        "--max-length", type=int, default=512,
+        help="Maximum number of tokens to generate"
     )
     parser.add_argument(
-        "--top-p",
-        type=float,
-        default=0.9,
-        help="Top-p sampling parameter"
+        "--temperature", type=float, default=0.7,
+        help="Generation temperature (higher = more creative, lower = more focused)"
     )
     parser.add_argument(
-        "--no-quantize",
-        action="store_true",
-        help="Disable quantization (requires more VRAM)"
+        "--top-p", type=float, default=0.9,
+        help="Nucleus sampling parameter"
     )
     parser.add_argument(
-        "--chat",
-        action="store_true",
-        help="Start interactive chat mode"
+        "--no-quantize", action="store_true", default=False,
+        help="Disable 4-bit quantization"
+    )
+    parser.add_argument(
+        "--chat", action="store_true", default=False,
+        help="Enter interactive chat mode"
     )
 
     args = parser.parse_args()
 
+    try:
+        inference = WronAIInference(
+            model_path=args.model, 
+            quantize=not args.no_quantize,
+            base_model=args.base_model
+        )
+    except Exception as e:
+        logger.error(f"Failed to initialize inference engine: {e}")
+        sys.exit(1)
+
     # Check if model path exists
-    if not Path(args.model).exists():
+    if not Path(args.model).exists() and not args.model.startswith(('http://', 'https://', 'huggingface.co')):
         logger.error(f"Model path not found: {args.model}")
         sys.exit(1)
-
-    # Initialize inference engine
-    inference = WronAIInference(
-        model_path=args.model,
-        quantize=not args.no_quantize
-    )
-
-    if args.chat:
-        # Interactive chat mode
-        inference.chat()
-    elif args.prompt:
-        # Single prompt mode
-        response = inference.generate(
-            args.prompt,
-            max_length=args.max_length,
-            temperature=args.temperature,
-            top_p=args.top_p
-        )
-        print(f"Prompt: {args.prompt}")
-        print(f"Response: {response}")
-    else:
-        print("Please provide either --prompt for single generation or --chat for interactive mode")
+    
+    # Generate response or start chat mode
+    try:
+        if args.chat:
+            inference.chat()
+        elif args.prompt:
+            print(f"Prompt: {args.prompt}")
+            response = inference.generate(
+                args.prompt,
+                max_length=args.max_length,
+                temperature=args.temperature,
+                top_p=args.top_p
+            )
+            print(f"Response: {response}")
+        else:
+            logger.info("No prompt provided, starting chat mode...")
+            inference.chat()
+    except Exception as e:
+        logger.error(f"Error during inference: {e}")
         sys.exit(1)
+    #else:
+    #    print("Please provide either --prompt for single generation or --chat for interactive mode")
+    #    sys.exit(1)
 
 
 if __name__ == "__main__":
