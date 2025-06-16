@@ -1,70 +1,173 @@
-# Kompletny plan pozyskiwania danych dla WronAI
+# WronAI Data Collection Pipeline
 
-Polski model językowy WronAI może zostać zbudowany na solidnej podstawie dostępnych polskich korpusów, które łącznie oferują ponad 150GB wysokiej jakości tekstów. Plan obejmuje strategiczne podejście do pobierania danych z priorytetyzacją jakości, praktyczne narzędzia implementacyjne oraz szacunkowy koszt infrastruktury ~50 zł miesięcznie.
+System do pobierania i przetwarzania polskich danych treningowych dla modeli językowych.
 
-## Najlepsze polskie korpusy językowe i datasety
+## Opis projektu
 
-### Korpusy open-source najwyższej jakości
+WronAI Data Collection Pipeline to kompleksowe narzędzie do zbierania, czyszczenia i przetwarzania polskojęzycznych danych tekstowych z różnych źródeł. System został zaprojektowany do tworzenia wysokiej jakości korpusu treningowego dla modeli językowych w języku polskim.
 
-**OSCAR Polish** stanowi fundament - 49-109GB polskiego tekstu z internetu po deduplikacji i filtrowaniu jakości. **OSCAR 23.01** oferuje najnowsze dane z ulepszonym filtrowaniem, dostępne przez HuggingFace pod licencją CC0. Dostęp wymaga rejestracji, ale dane są kompletnie otwarte dla szkolenia AI.
+## Źródła danych
 
-**Wikipedia Polish** dostarcza 4GB+ wysokiej jakości treści encyklopedycznych z miesięcznymi aktualizacjami. Dostępna przez oficjalne dumpy Wikimedia pod licencjami Creative Commons, oferuje czyste, zredagowane treści z cytowaniami.
+Pipeline zbiera dane z następujących źródeł:
 
-**Common Crawl CC-100 Polish** zawiera 12GB skompresowanego tekstu internetowego po filtrowaniu, reprezentując szeroką różnorodność źródeł internetowych pod licencją Common Crawl Terms of Use.
+1. **Wysokiej jakości**:
+   - Polska Wikipedia
+   - Wolne Lektury (polskie książki w domenie publicznej)
+   - Artykuły akademickie
 
-### Zasoby akademickie instytucjonalne
+2. **Średniej jakości**:
+   - OSCAR Polish (filtrowany Common Crawl)
+   - Common Crawl (wybrane polskie domeny)
 
-**Narodowy Korpus Języka Polskiego (NKJP)** stanowi referencyjny korpus o rozmiarze 1.5 miliarda słów, z 300 milionami w korpusie zbalansowanym i 1 milionem w korpusie ręcznie anotowanym. Zawiera literaturę, gazety, czasopisma, rozmowy i teksty internetowe pod licencją CC-BY dla 1M podkorpusu.
+## Funkcjonalności
 
-**CLARIN-PL** udostępnia multiple zasoby językowe w tym Spokes (2.3M słów rozmów), Paralela (teksty polsko-angielskie), ParlaMint Polish (1,010 godzin przemówień parlamentarnych) i datasets do desambiguacji znaczenia słów.
+- Pobieranie danych z wielu źródeł
+- Czyszczenie i normalizacja tekstu
+- Deduplikacja na poziomie dokumentów
+- Identyfikacja języka (filtrowanie niepolskich tekstów)
+- Tworzenie podziałów na zbiory treningowe, walidacyjne i testowe
+- Generowanie metadanych
 
-**Korpus Współczesnego Języka Polskiego (KWJP)** to reprezentatywny korpus polszczyzny lat 2010. z anotacjami morfologicznymi i syntaktycznymi dla zastosowań badawczych.
+## Wymagania systemowe
 
-### Zbiory literackie i kulturowe
+- Python 3.8 lub nowszy
+- Dostęp do internetu
+- Min. 16GB RAM (zalecane)
+- Przestrzeń dyskowa: min. 100GB (zależnie od docelowego rozmiaru korpusu)
 
-**Wolne Lektury** oferuje 6,714+ dzieł literackich w tym obowiązkowe lektury szkolne przez otwarte API w formatach XML, HTML, PDF, EPUB, MOBI, FB2, TXT. Licencja public domain i Creative Commons umożliwia swobodne wykorzystanie profesjonalnie zredagowanych tekstów z przypisami.
+## Instalacja
 
-### Publikacje techniczne i naukowe
+```bash
+# Sklonuj repozytorium
+git clone https://github.com/wronai/llm.git
+cd llm/wronai_data
 
-**Polish Library of Science Corpus (PLSC)** zawiera 100K+ rekordów naukowych z bibliotekanauki.pl obejmując 8 dziedzin i 47 dyscyplin. **SpeakLeash Polish Corpus** udostępnia 90+ miliardów tokenów polskiego tekstu kuracyjnego dla projektów LM.
+# Uruchom skrypt instalacyjny
+bash setup.sh
+```
 
-### Conversational datasets
+Skrypt `setup.sh` automatycznie:
+1. Tworzy wirtualne środowisko Python
+2. Instaluje wszystkie wymagane zależności z pliku requirements.txt
+3. Pobiera model FastText do identyfikacji języka
 
-**SpokesBiz Corpus** zawiera 650+ godzin nagrań rozmów biznesowych z wysokiej jakości transkrypcją i anotacjami. **DiaBiz Corpus** oferuje anotowane rozmowy call center. **Polish Parliamentary Corpus** dostarcza 3,000+ plików XML oficjalnych transkrypcji parlamentarnych.
+# WronAI Data Collection - Naprawiona Wersja
 
-## Struktura folderów i organizacja danych
+## Przegląd
 
-### Hierarchiczna struktura jakościowa
+Ta wersja naprawia problemy z oryginalnym skryptem:
+
+✅ **Naprawione problemy:**
+- Używa dostępnej wersji Wikipedii (20220301.pl)
+- Lepszy error handling dla Wolnych Lektur
+- Alternatywne źródła zamiast niedostępnego OSCAR
+- Prosta deduplikacja hash-based
+- Graceful degradation gdy źródła są niedostępne
+
+## Szybki start
+
+```bash
+# Setup
+bash setup.sh
+source venv/bin/activate
+
+# Test (100MB)
+python scripts/test_data_collection.py
+
+# Pełne zbieranie (5GB)
+python scripts/collect_wronai_data_fixed.py
+```
+
+## Dostępne źródła
+
+1. **Wikipedia PL** (20220301) - ~1.5M artykułów
+2. **Wolne Lektury** - literatura klasyczna
+3. **CC-100 PL** - korpus internetowy (jeśli dostępny)
+4. **Fallback sources** - dodatkowe źródła
+
+## Struktura danych
+
+```
+data/
+├── wikipedia_pl.jsonl      # Artykuły Wikipedia
+├── wolne_lektury.jsonl     # Książki
+└── cc100_pl.jsonl          # Teksty internetowe
+```
+
+Format JSONL:
+```json
+{
+  "id": "wiki_12345",
+  "title": "Tytuł artykułu",
+  "text": "Treść...",
+  "source": "wikipedia"
+}
+```
+
+## Monitoring
+
+- Logi w konsoli z progress bars
+- Statystyki na końcu wykonania
+- Graceful stop przy osiągnięciu limitu rozmiaru
+
+## Rozwiązywanie problemów
+
+**Problem**: Błąd dostępu do datasetu
+**Rozwiązanie**: Skrypt automatycznie przechodzi do następnego źródła
+
+**Problem**: Timeout przy pobieraniu
+**Rozwiązanie**: Zwiększone timeout'y i retry logic
+
+**Problem**: Brak polskich znaków
+**Rozwiązanie**: Prostsza heurystyka detekcji języka
+
+
+## Użycie
+
+Aby uruchomić pełny pipeline zbierania danych:
+
+```bash
+# Aktywuj środowisko wirtualne
+source venv/bin/activate
+
+# Uruchom skrypt
+python collect_wronai_data.py
+```
+
+### Parametry konfiguracyjne
+
+Możesz dostosować parametry uruchomienia:
+
+```python
+collector = WronAIDataCollector(
+    output_dir="./output_data",  # Katalog wyjściowy
+    target_size_gb=50            # Docelowy rozmiar korpusu w GB
+)
+collector.run_collection_pipeline()
+```
+
+## Struktura katalogów
 
 ```
 wronai_data/
-├── raw_data/
-│   ├── high_quality/          # Wikipedia, książki, papers
+├── raw_data/                # Surowe dane z różnych źródeł
+│   ├── high_quality/        # Źródła wysokiej jakości
 │   │   ├── wikipedia_pl/
 │   │   ├── wolne_lektury/
 │   │   └── academic_papers/
-│   ├── medium_quality/        # Wiadomości, fora, Q&A
-│   │   ├── news_portals/
-│   │   ├── forums_discussions/
-│   │   └── qa_platforms/
-│   └── low_quality/           # Media społecznościowe, komentarze
-│       ├── social_media/
-│       ├── web_comments/
-│       └── unfiltered_crawl/
-├── processed_data/
-│   ├── filtered/              # Po filtrowaniu jakości
-│   ├── deduplicated/         # Po deduplikacji
-│   ├── tokenized/            # Po tokenizacji
-│   └── balanced/             # Po balansowaniu domen
-└── splits/
-    ├── train/                # 80% danych
-    ├── validation/           # 10% danych
-    └── test/                # 10% danych
-```
-
-### Konwencje nazewnictwa i metadane
-
-**Format nazw plików:**
+│   └── medium_quality/      # Źródła średniej jakości
+│       ├── oscar_pl/
+│       └── common_crawl/
+├── processed_data/          # Przetworzone dane
+│   ├── filtered/            # Po filtrowaniu języka
+│   ├── deduplicated/        # Po deduplikacji
+│   └── tokenized/           # Po tokenizacji
+├── splits/                  # Podziały na zbiory
+│   ├── train/
+│   ├── validation/
+│   └── test/
+├── metadata/                # Metadane korpusu
+└── logs/                    # Logi procesu
 ```
 {źródło}_{jakość}_{domena}_{wersja}_{split}_{shard}.{format}
 ```
@@ -147,49 +250,20 @@ wronai_data/
 
 ### Wymagania infrastrukturalne
 
-**Przestrzeń dyskowa:**
-- **Dane surowe**: 200GB (4x rozmiar docelowy na przetwarzanie)
-- **Cache i temp**: 100GB dla przetwarzania tymczasowego
-- **Backupy**: 150GB dla redundancji i wersjonowania
-- **Łącznie**: 450GB zalecanej przestrzeni NVMe SSD
+## Rozwiązywanie problemów
 
-**Pamięć RAM:**
-- **Minimum**: 32GB dla podstawowego przetwarzania
-- **Zalecane**: 64GB dla efektywnego przetwarzania równoległego
-- **Optymalne**: 128GB dla dużych korpusów bez swappingu
+### Brak dostępu do OSCAR
 
-**Procesor:**
-- **Minimum**: 8 rdzeni dla sekwencyjnego przetwarzania
-- **Zalecane**: 16 rdzeni dla przetwarzania równoległego
-- **Optymalne**: 32 rdzenie (AMD Ryzen 7000 series lub Intel 13th gen)
+Jeśli napotkasz problemy z dostępem do datasetu OSCAR, upewnij się, że używasz publicznie dostępnej wersji lub masz odpowiednie uprawnienia.
 
-**Łącze internetowe:**
-- **Minimum**: 100 Mbps dla pobierania większych korpusów
-- **Zalecane**: 1 Gbps dla efektywnego pobierania OSCAR (2-4 godziny)
-- **Transfer**: ~150GB łącznego pobierania danych
+### Problemy z pamięcią
 
-### Szacunkowe koszty (miesięcznie)
+Dla dużych korpusów zalecane jest uruchamianie skryptu na maszynie z co najmniej 16GB RAM. Możesz zmniejszyć parametr `target_size_gb` aby zmniejszyć wymagania pamięciowe.
 
-**Cloud storage (AWS/Azure/GCP):**
-- **50GB dataset**: $1-2/miesiąc storage
-- **200GB z przetwarzaniem**: $4-8/miesiąc  
-- **Backup i redundancja**: +$2-4/miesiąc
+## Licencja
 
-**Obliczenia (processing):**
-- **Occasional processing**: $10-20/miesiąc
-- **Regular reprocessing**: $30-50/miesiąc
+Ten projekt jest udostępniany na licencji Apache 2.0. Zobacz plik `LICENSE` w repozytorium.
 
-**Łączny szacunkowy koszt:**
-- **Mała skala (50GB)**: $15-30/miesiąc (~50-100 zł)
-- **Średnia skala (200GB)**: $40-80/miesiąc (~150-300 zł)
-- **Duża skala (1TB+)**: $100-200/miesiąc (~400-800 zł)
+## Autorzy
 
-### Optymalizacja kosztów
-
-**Strategie oszczędności:**
-- **Lifecycle policies**: Automatyczne przenoszenie starszych danych do tańszego storage
-- **Spot instances**: Użycie tanich instancji do przetwarzania niekrytycznego  
-- **Regional optimization**: Utrzymanie danych i obliczeń w tym samym regionie
-- **Kompresja**: Efektywna kompresja zarchiwizowanych danych (zstd, lz4)
-
-Ten kompleksowy plan zapewnia solidną podstawę do budowy polskiego modelu językowego WronAI z możliwością skalowania w zależności od potrzeb i dostępnych zasobów. Implementacja pipeline'u w Docker'ze gwarantuje reprodukowalność, a szczegółowe instrukcje pozwalają na łatwe dostosowanie do specific requirements projektu.
+Zespół WronAI

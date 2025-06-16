@@ -1,0 +1,15 @@
+{
+  "collection_date": "2025-06-16T13:56:37.808848",
+  "target_size_mb": 500.0,
+  "actual_size_mb": 0.07922172546386719,
+  "sources": {
+    "wikipedia": 0,
+    "wolne_lektury": 20,
+    "synthetic": 50
+  },
+  "total_items": 70,
+  "files_created": [
+    "synthetic.jsonl",
+    "lektury.jsonl"
+  ]
+}

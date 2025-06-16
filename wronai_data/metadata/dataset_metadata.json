@@ -1,0 +1,30 @@
+{
+  "dataset_info": {
+    "name": "wronai_training_v1.0",
+    "version": "1.0.0",
+    "created_date": "2025-06-16T13:53:12.367209",
+    "total_samples": 0,
+    "total_size_gb": 0.0,
+    "target_size_gb": 50
+  },
+  "source_stats": {
+    "wolne_lektury": 0
+  },
+  "source_attribution": {
+    "primary_sources": [
+      "wolne_lektury"
+    ],
+    "licenses": [
+      "CC0",
+      "CC-BY-SA",
+      "Public Domain"
+    ],
+    "created_by": "WronAI Data Collection Pipeline"
+  },
+  "processing_info": {
+    "deduplication_performed": true,
+    "language_filtering": true,
+    "quality_filtering": true,
+    "min_text_length": 100
+  }
+}
